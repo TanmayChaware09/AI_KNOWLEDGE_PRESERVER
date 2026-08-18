@@ -1,0 +1,59 @@
+# =========================
+# ENV / SECRETS
+# =========================
+.env
+.env.*
+*.env
+
+client_secret.json
+drive_token.json
+token.json
+
+# =========================
+# PYTHON
+# =========================
+__pycache__/
+*.py[cod]
+*.pyo
+
+# =========================
+# DATABASE / VECTOR DB
+# =========================
+chroma_db/
+*.sqlite
+*.sqlite3
+
+# =========================
+# LOCAL STATE / GENERATED DATA
+# =========================
+backend/state/
+backend/meeting/output/
+backend/meeting/metadata/
+backend/meeting/recordings/
+
+# =========================
+# LOCAL VIRTUAL ENV
+# =========================
+venv/
+.venv/
+env/
+
+# =========================
+# NODE
+# =========================
+node_modules/
+frontend/node_modules/
+frontend/dist/
+
+# =========================
+# LOGS
+# =========================
+*.log
+
+# =========================
+# ARCHIVES
+# =========================
+*.zip
+
+backend/meeting/participants.json
+backend/meeting/transcripts/
