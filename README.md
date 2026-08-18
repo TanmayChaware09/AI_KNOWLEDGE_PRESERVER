@@ -1,150 +1,143 @@
 🛡️ AI Loss Prevention System
 
-An AI-powered enterprise knowledge, privacy, and loss-prevention platform designed to protect organizational intelligence while making it accessible to authorized employees, managers, and HR teams.
+Intelligent Enterprise Knowledge • Privacy • RAG • AI Assistant
+
+Protect organizational knowledge. Prevent sensitive data loss. Give every team the right intelligence.
+
+
+
+
+
+
+
 
 📌 Table of Contents
 
 Overview
 
-Problem Statement
+Problem
 
 Solution
 
-Core Objectives
+Features
 
-Key Features
+Architecture
 
-System Architecture
+User Flow
 
-Application Flow
+Role-Based Experience
 
-Role-Based Access
+AI and RAG
 
-Employee Dashboard
+Negative RAG
 
-Manager Dashboard
+Privacy and Loss Prevention
 
-HR Dashboard
+Knowledge Sources
 
-Knowledge System
-
-RAG Pipeline
-
-Privacy & Loss Prevention
-
-AI Assistant
-
-Data Sources
-
-Authentication
-
-Backend Architecture
-
-Frontend Architecture
+Database
 
 Project Structure
 
 Technology Stack
 
-Database Design
+Quick Start
 
-API Overview
-
-Security Design
-
-Negative RAG / Hallucination Prevention
-
-Current Project Status
-
-Future Enhancements
-
-Installation
-
-Running the Project
-
-Development Credentials
+Authentication
 
 Testing
 
-GitHub Workflow
+Current Status
 
-Production Considerations
+Roadmap
 
-Contributing
+Security
 
-License
+Future Enhancements
 
-🚀 Overview
+Project Vision
 
-The AI Loss Prevention System is an enterprise-focused AI platform designed to reduce the loss of valuable organizational knowledge and prevent sensitive information from being unnecessarily exposed to AI systems.
+🎯 Overview
 
-Modern organizations generate huge amounts of knowledge through:
+AI Loss Prevention System is an enterprise knowledge platform that combines:
 
-GitHub repositories
+Organizational knowledge preservation
 
-Slack conversations
+Privacy protection
 
-Emails
+Role-based access
 
-Meetings
+Retrieval-Augmented Generation
 
-Project documentation
+AI-powered knowledge assistance
 
-Tasks
+Organizations create valuable information every day across GitHub, Slack, Email, meetings, projects, and internal documentation.
 
-Internal knowledge bases
+The problem is that this knowledge becomes fragmented, difficult to search, or completely lost when people change teams or leave an organization.
 
-Employee discussions
+At the same time, sending raw enterprise information directly to an AI system can create privacy and security risks.
 
-Technical decisions
+This project addresses both problems.
 
-A large portion of this information becomes difficult to discover, disconnected across tools, or unavailable when employees leave the organization.
+Core idea
 
-At the same time, sending raw enterprise information directly into AI systems can introduce privacy and security risks.
+GitHub ─────┐
+Slack ──────┤
+Email ──────┤
+Meetings ───┤
+Projects ───┤
+Knowledge ──┘
+      │
+      ▼
+Data Ingestion
+      │
+      ▼
+Privacy / PII Protection
+      │
+      ▼
+Knowledge Storage
+      │
+      ▼
+Embeddings + Vector Search
+      │
+      ▼
+RAG Retrieval
+      │
+      ▼
+Permission Check
+      │
+      ▼
+AI Assistant
+      │
+ ┌────┼────┐
+ ▼    ▼    ▼
+EMP  MGR   HR
 
-This project combines:
+💡 Problem
 
-Knowledge Preservation + Privacy Protection + Role-Based Access + RAG + AI Assistance
-
-into a single platform.
-
-🎯 Problem Statement
-
-Organizations continuously create valuable knowledge, but that knowledge is often fragmented.
-
-For example:
-
-GitHub
-   ├── Code
-   ├── Pull Requests
-   └── Technical Decisions
-
-Slack
-   ├── Discussions
-   ├── Decisions
-   └── Problem Solving
-
-Email
-   ├── Communication
-   ├── Approvals
-   └── Decisions
-
-Meetings
-   ├── Conversations
-   ├── Decisions
-   └── Action Items
-
-This creates several problems.
+Modern organizations face several knowledge-management problems.
 
 1. Knowledge Loss
 
-When employees leave or projects change teams, important knowledge can disappear.
+Important technical and business decisions often exist only in individual employees' memory.
 
 2. Knowledge Fragmentation
 
-Information is spread across multiple platforms.
+Information is distributed across:
 
-3. Search Difficulty
+GitHub
+
+Slack
+
+Email
+
+Meetings
+
+Documents
+
+Project systems
+
+3. Difficult Discovery
 
 Employees may know that information exists but not where it is stored.
 
@@ -158,434 +151,235 @@ Emails
 
 Phone numbers
 
-Credentials
-
 Internal identifiers
+
+Credentials
 
 Sensitive business information
 
 5. AI Hallucination
 
-If an AI system does not have sufficient evidence, it may generate an answer that sounds correct but is unsupported.
+An AI assistant may generate a confident answer even when the organization has no supporting information.
 
-The AI Loss Prevention System addresses these challenges through a controlled knowledge pipeline.
+🚀 Solution
 
-💡 Solution
+The AI Loss Prevention System creates a controlled organizational knowledge layer.
 
-The system collects organizational knowledge, processes it through privacy-aware components, stores it in searchable representations, and allows authorized users to retrieve information through dashboards and an AI assistant.
+                    COMPANY DATA
+                         │
+        ┌────────────────┼────────────────┐
+        │                │                │
+      GitHub           Slack            Email
+        │                │                │
+        └────────────────┼────────────────┘
+                         │
+                      Meetings
+                         │
+                         ▼
+                  DATA INGESTION
+                         │
+                         ▼
+                 PRIVACY / PII
+                         │
+                         ▼
+                 KNOWLEDGE MEMORY
+                         │
+                         ▼
+                VECTOR REPRESENTATION
+                         │
+                         ▼
+                     RETRIEVAL
+                         │
+                         ▼
+                 AUTHORIZATION
+                         │
+                         ▼
+                   AI ASSISTANT
 
-High-level flow:
+The system aims to make organizational knowledge:
 
-                    ORGANIZATIONAL DATA
-                           │
-          ┌────────────────┼────────────────┐
-          │                │                │
-       GitHub           Slack            Email
-          │                │                │
-          └────────────────┼────────────────┘
-                           │
-                        Meetings
-                           │
-                           ▼
-                    Data Ingestion
-                           │
-                           ▼
-                 Privacy / PII Layer
-                           │
-                           ▼
-                    Knowledge Storage
-                           │
-                           ▼
-                  Embedding / Vector DB
-                           │
-                           ▼
-                       Retrieval
-                           │
-                    Permission Check
-                           │
-                           ▼
-                    AI / RAG Layer
-                           │
-             ┌─────────────┼─────────────┐
-             │             │             │
-         Employee       Manager          HR
-             │             │             │
-             └─────────────┼─────────────┘
-                           ▼
-                      AI Assistant
+Discoverable
 
-🎯 Core Objectives
+Useful
 
-The project focuses on five major objectives.
+Private
 
-1. Preserve Organizational Knowledge
+Permission-aware
 
-Convert scattered organizational information into structured, searchable knowledge.
+Grounded
 
-2. Prevent Sensitive Information Leakage
+Preserved
 
-Detect and protect sensitive information before it reaches downstream AI components.
+✨ Features
 
-3. Provide Role-Based Access
+Feature
 
-Different users should see only information appropriate for their role.
+Description
 
-4. Enable Grounded AI Answers
+🏠 Landing Page
 
-Use retrieval-based AI instead of relying only on the language model's internal knowledge.
+Product introduction and entry point
 
-5. Prevent Unsupported Answers
+👥 Role Selection
 
-If sufficient knowledge is not available, the system should avoid inventing an answer.
-
-✨ Key Features
+Employee, Manager and HR workflows
 
 🔐 Authentication
 
-Employee login
-
-Manager login
-
-HR login
-
-Password verification
-
-Role validation
-
-Secure password hashing
-
-👥 Role-Based Dashboards
-
-Dedicated interfaces for:
-
-Employees
-
-Managers
-
-HR
-
-📊 Project Management
-
-Projects
-
-Project members
-
-Project status
-
-Project employee counts
-
-📋 Task Management
-
-Task assignment
-
-Task status
-
-Priority
-
-Due dates
-
-Employee ownership
-
-Manager ownership
-
-🧠 Knowledge Management
-
-Organizational knowledge
-
-Knowledge categories
-
-Confidence scores
-
-Knowledge timestamps
-
-Vector references
-
-Employee/manager associations
-
-🤖 AI Assistant
-
-Natural-language questions
-
-Knowledge retrieval
-
-Context-based responses
-
-Role-aware access
-
-🛡️ Privacy Layer
-
-PII detection
-
-Anonymization
-
-Hashing
-
-Sensitive-data protection
-
-🔎 RAG
-
-Embedding generation
-
-Vector storage
-
-Similarity retrieval
-
-Context injection
-
-Grounded answering
-
-📈 Activity Tracking
-
-The system can surface activities such as:
-
-Project creation
-
-Employee assignment
-
-Task assignment
-
-Task updates
-
-🏗️ System Architecture
-
-The project is organized into multiple logical layers.
-
-┌─────────────────────────────────────────────────────┐
-│                    FRONTEND                         │
-│                                                     │
-│ Landing → Role Selection → Login → Dashboards      │
-│                                                     │
-│ Employee | Manager | HR                             │
-└───────────────────────┬─────────────────────────────┘
-                        │
-                        │ HTTP / REST
-                        ▼
-┌─────────────────────────────────────────────────────┐
-│                    API LAYER                        │
-│                                                     │
-│ Authentication                                      │
-│ Employee APIs                                       │
-│ Manager APIs                                        │
-│ HR APIs                                             │
-│ Knowledge APIs                                      │
-│ Task APIs                                           │
-│ Project APIs                                        │
-│ AI / RAG APIs                                       │
-└───────────────┬─────────────────┬───────────────────┘
-                │                 │
-                ▼                 ▼
-       ┌────────────────┐   ┌────────────────┐
-       │ PostgreSQL     │   │ Vector Store   │
-       │                │   │                │
-       │ Users          │   │ Embeddings     │
-       │ Projects       │   │ Retrieval      │
-       │ Tasks          │   │ RAG            │
-       │ Knowledge      │   │                │
-       └────────────────┘   └────────────────┘
-                │                 │
-                └────────┬────────┘
-                         ▼
-                ┌─────────────────┐
-                │ AI / Agent Layer │
-                │                 │
-                │ Retrieval Agent │
-                │ Answer Agent    │
-                │ Knowledge Agent │
-                │ Privacy Agent   │
-                └─────────────────┘
-
-🔄 Application Flow
-
-1. Landing Page
-
-The user first sees the system introduction.
-
-/
-│
-├── Product introduction
-├── Security information
-├── AI capabilities
-└── Get Started
-
-2. Role Selection
-
-The user selects:
-
-Employee
-Manager
-HR
-
-3. Login
-
-The selected role determines the authentication context.
-
-Example:
-
-{
-  "identifier": "EMP001",
-  "password": "********",
-  "role": "employee"
-}
-
-4. Authentication
-
-The backend validates:
-
-User ID
-   +
-Role
-   +
-Password
-
-5. Dashboard
-
-After successful authentication, the user reaches the appropriate dashboard.
-
-👥 Role-Based Access
-
-👨‍💻 Employee
-
-Employees can work with their authorized:
-
-Projects
-
-Tasks
-
-Knowledge
-
-Activity
-
-AI assistant
-
-👔 Manager
-
-Managers can work with:
-
-Employees
-
-Projects
-
-Tasks
-
-Team activity
-
-Team knowledge
-
-AI assistant
-
-🧑‍💼 HR
-
-HR receives organization-level functionality such as:
-
-Employee overview
-
-Project overview
-
-Task overview
-
-Organization activity
-
-Knowledge overview
-
-AI assistant
+User ID, password and role verification
 
 👨‍💻 Employee Dashboard
 
-The employee dashboard provides a personalized view of the employee's work.
-
-Typical information includes:
-
-Employee
-│
-├── Projects
-├── Tasks
-├── Pending Tasks
-├── Completed Tasks
-├── Knowledge
-└── AI Assistant
-
-The dashboard uses backend APIs to retrieve employee-specific information.
+Personal projects, tasks and knowledge
 
 👔 Manager Dashboard
 
-The manager dashboard provides team-level visibility.
-
-Manager
-│
-├── Total Employees
-├── Projects
-├── Tasks
-├── Pending Tasks
-├── Completed Tasks
-├── Team Knowledge
-└── Recent Activity
-
-Managers can view project and task relationships across their team.
+Team, projects, tasks and activity
 
 🧑‍💼 HR Dashboard
 
-The HR dashboard provides a higher-level organizational overview.
+Organization-level overview
 
-It can surface:
+📋 Task Management
 
-Total employees
+Assignment, priority, status and due dates
 
-Total projects
+📁 Project Management
 
-Total tasks
+Projects, members and status
 
-Pending tasks
+🧠 Knowledge Management
 
-Completed tasks
+Structured organizational knowledge
 
-Team knowledge
+🤖 AI Assistant
 
-Recent organizational activity
+Natural-language enterprise knowledge access
 
-Example overview:
+🔎 RAG
 
-{
-  "total_employees": 1,
-  "total_projects": 2,
-  "total_tasks": 4,
-  "pending_tasks": 4,
-  "completed_tasks": 0,
-  "team_knowledge": 6
-}
+Retrieval-grounded AI responses
 
-🧠 Knowledge System
+🛡️ PII Protection
 
-The knowledge system is one of the central components of the platform.
+Privacy-aware processing
 
-Knowledge records contain fields such as:
+🔒 Role-Based Access
 
-ID
-Title
-Summary
-Category
-Confidence
-Timestamp
-Employee Hash
-Manager Hash
-Vector ID
+Authorized information access
 
-This allows knowledge to be associated with:
+📊 Activity Tracking
 
-People
+Project and task activity
 
-Projects
+🔌 Data Collectors
 
-Categories
+GitHub, Slack, Email and Meetings
 
-Time
+🏗️ Architecture
 
-Confidence
+High-Level Architecture
 
-Vector representations
+┌───────────────────────────────────────────────────────────┐
+│                       FRONTEND                            │
+│                                                           │
+│ Landing → Role Selection → Login → Dashboard             │
+│                                                           │
+│ Employee        Manager              HR                   │
+└─────────────────────────────┬─────────────────────────────┘
+                              │
+                              │ REST / HTTP
+                              ▼
+┌───────────────────────────────────────────────────────────┐
+│                        API LAYER                           │
+│                                                           │
+│ Auth │ Employee │ Manager │ HR │ Projects │ Tasks │ AI   │
+└───────────────┬──────────────────────────┬────────────────┘
+                │                          │
+                ▼                          ▼
+      ┌──────────────────┐        ┌──────────────────┐
+      │   PostgreSQL     │        │     ChromaDB     │
+      │                  │        │                  │
+      │ Users            │        │ Embeddings       │
+      │ Projects         │        │ Vector Search    │
+      │ Tasks            │        │ Retrieval        │
+      │ Knowledge        │        │ RAG              │
+      └──────────────────┘        └─────────┬────────┘
+                                           │
+                                           ▼
+                                  ┌─────────────────┐
+                                  │   AI AGENTS     │
+                                  │                 │
+                                  │ Retrieval Agent │
+                                  │ Answer Agent    │
+                                  │ Knowledge Agent │
+                                  │ Privacy Agent   │
+                                  └─────────────────┘
 
-🔎 RAG Pipeline
+🔄 User Flow
 
-The Retrieval-Augmented Generation pipeline follows:
+Landing Page
+     │
+     ▼
+Role Selection
+     │
+ ┌───┼───────────┐
+ ▼   ▼           ▼
+EMP MGR          HR
+ │   │           │
+ └───┼───────────┘
+     ▼
+   Login
+     │
+     ▼
+Authentication
+     │
+     ▼
+Authorized Dashboard
+
+👥 Role-Based Experience
+
+👨‍💻 Employee
+
+Employee
+   │
+   ├── Projects
+   ├── Tasks
+   ├── Knowledge
+   ├── Activity
+   └── AI Assistant
+
+Employees receive a personalized view of their authorized work and knowledge.
+
+👔 Manager
+
+Manager
+   │
+   ├── Employees
+   ├── Projects
+   ├── Tasks
+   ├── Team Knowledge
+   ├── Activity
+   └── AI Assistant
+
+Managers receive team and project-level visibility.
+
+🧑‍💼 HR
+
+HR
+ │
+ ├── Employee Overview
+ ├── Project Overview
+ ├── Task Overview
+ ├── Organization Activity
+ ├── Knowledge Overview
+ └── AI Assistant
+
+🤖 AI and RAG
+
+The AI layer uses Retrieval-Augmented Generation.
+
+Instead of asking an LLM to answer entirely from its internal knowledge, the system first retrieves relevant organizational information.
 
 User Question
       │
@@ -593,293 +387,274 @@ User Question
 Query Processing
       │
       ▼
-Embedding Generation
+Embedding
       │
       ▼
-Vector Similarity Search
+Vector Search
       │
       ▼
 Relevant Knowledge
       │
       ▼
-Permission / Privacy Filtering
+Permission / Privacy Filter
       │
       ▼
-Context Construction
+Context
       │
       ▼
-Answer Generation
+LLM
       │
       ▼
 Grounded Answer
 
-The key principle is:
-
-The AI should answer using available organizational evidence rather than inventing information.
-
-🚫 Negative RAG / Hallucination Prevention
-
-A major evaluation scenario is when the user asks something that does not exist in the knowledge base.
-
-Example:
-
-Question:
-"What was the decision regarding a technology that is not present
-in our organizational knowledge?"
-
-The expected behavior is:
-
-No sufficient knowledge found.
-
-rather than:
-
-The team decided X because...
-
-This makes the assistant more trustworthy for enterprise usage.
-
-🛡️ Privacy & Loss Prevention
-
-The privacy layer is designed to prevent unnecessary exposure of sensitive information.
-
-Conceptually:
-
-Raw Data
-   │
-   ▼
-PII Detection
-   │
-   ▼
-Sensitive Entity Identification
-   │
-   ▼
-Anonymization / Hashing
-   │
-   ▼
-Safe Knowledge Representation
-   │
-   ▼
-Vector / Database Storage
-
-The project contains privacy-oriented components such as:
-
-PII detector
-
-Presidio integration
-
-Anonymizer
-
-Hashing service
-
-Entity merger
-
-Privacy agent
-
-Storage agent
-
-🤖 AI Assistant
-
-The AI assistant is designed as the natural-language interface to organizational knowledge.
-
-Example:
+Example
 
 User:
 "Why was PostgreSQL retained instead of MongoDB?"
 
-Pipeline:
+        ↓
 
-Question
-   ↓
 Retrieval Agent
-   ↓
-Relevant organizational documents
-   ↓
-Context
-   ↓
+
+        ↓
+
+Relevant organizational decisions
+
+        ↓
+
 Answer Agent
-   ↓
+
+        ↓
+
 Grounded response
 
-If the system does not have enough relevant evidence:
+🚫 Negative RAG
 
-No sufficient knowledge found.
+A critical requirement is handling questions where the knowledge base does not contain enough information.
 
-📥 Data Sources
+Without negative RAG
 
-The project contains collectors/connectors for organizational sources.
+User Question
+      ↓
+No relevant knowledge
+      ↓
+LLM guesses
+      ↓
+❌ Hallucinated answer
 
-GitHub
+With negative RAG
 
-Used for organizational technical knowledge such as:
+User Question
+      ↓
+Retrieval
+      ↓
+Is sufficient evidence available?
+      │
+ ┌────┴────┐
+ │         │
+YES       NO
+ │         │
+ ▼         ▼
+Answer   "No sufficient
+         knowledge found."
 
-Code-related information
+This makes the assistant safer and more trustworthy for enterprise use.
 
-Repository knowledge
+🛡️ Privacy and Loss Prevention
 
-Technical context
+Privacy is implemented as a separate processing layer.
 
-Slack
+RAW DATA
+   │
+   ▼
+PII DETECTION
+   │
+   ▼
+SENSITIVE ENTITY CHECK
+   │
+   ▼
+ANONYMIZATION / HASHING
+   │
+   ▼
+SAFE REPRESENTATION
+   │
+   ▼
+STORAGE
+   │
+   ▼
+RETRIEVAL
+   │
+   ▼
+AUTHORIZATION CHECK
+   │
+   ▼
+AI
 
-Used for organizational discussions and decisions.
+Privacy-related components include:
 
-Email
+PII Detector
 
-Used for relevant organizational communication.
+Presidio Service
 
-Meetings
+Anonymizer
 
-The meeting pipeline includes components for:
+Hashing Service
 
-Meeting recordings
+Entity Merger
 
-Transcripts
+Privacy Agent
 
-Speaker mapping
+Storage Agent
 
-Knowledge extraction
+🔐 Security Model
 
-Meeting summaries
+The intended security flow is:
 
-Raw document generation
+Authentication
+      │
+      ▼
+Role Validation
+      │
+      ▼
+Authorization
+      │
+      ▼
+Privacy Filtering
+      │
+      ▼
+Knowledge Retrieval
+      │
+      ▼
+AI Response
 
-Google Drive
+A key design principle is:
 
-The project also contains a Google Drive connector.
+Authentication does not automatically grant access to every piece of organizational knowledge.
 
-🔐 Authentication
+📥 Knowledge Sources
 
-The current development authentication system uses:
+🐙 GitHub
 
-User ID
-Password
-Role
+Used for technical and repository-related knowledge.
 
-Development users:
+Examples:
 
-Role
+Technical decisions
 
-ID
+Repository information
 
-Employee
+Engineering context
 
-EMP001
+💬 Slack
 
-Manager
+Used for:
 
-MANAGER001
+Discussions
 
-HR
+Decisions
 
-HR001
+Problem solving
 
-Passwords are stored as password hashes rather than plaintext values.
+Team communication
 
-The backend validates both:
+📧 Email
 
-User ID
-+
-Role
+Used for:
 
-before accepting the login.
+Organizational communication
 
-These credentials are for local development/testing only.
+Approvals
 
-🧱 Backend Architecture
+Decisions
 
-The repository currently contains multiple backend layers.
+Relevant business context
 
-backend/
+🎙️ Meetings
 
-Handles data collection and external-source processing.
+The meeting pipeline can process:
 
-backend/
-├── collectors/
-│   ├── email.py
-│   ├── github.py
-│   ├── meeting.py
-│   └── slack.py
-│
-├── connectors/
-│   └── google_drive.py
-│
-├── meeting/
-│   ├── knowledge_extractor.py
-│   ├── meeting_llm.py
-│   ├── raw_document_generator.py
-│   └── speaker_mapper.py
-│
-└── main.py
+Recording
+   ↓
+Transcript
+   ↓
+Speaker Mapping
+   ↓
+Knowledge Extraction
+   ↓
+Meeting Summary
+   ↓
+Knowledge Representation
 
-backend_3_4/
+☁️ Google Drive
 
-Contains privacy, storage, database and knowledge-related services.
+A Google Drive connector is included for document-based organizational knowledge.
 
-backend_3_4/
-├── agents/
-│   ├── privacy_agent.py
-│   └── storage_agent.py
-│
-├── services/
-│   ├── anonymizer.py
-│   ├── chroma_service.py
-│   ├── embedding_service.py
-│   ├── entity_merger.py
-│   ├── grok_service.py
-│   ├── hashing_service.py
-│   ├── pii_detector.py
-│   ├── postgres_service.py
-│   └── presidio_service.py
-│
-├── models.py
-└── main.py
+🧠 Knowledge Model
 
-backend_56/
+Knowledge records contain fields such as:
 
-Contains the API and RAG components.
+┌────────────────────────────┐
+│         KNOWLEDGE          │
+├────────────────────────────┤
+│ ID                         │
+│ Title                      │
+│ Summary                    │
+│ Category                   │
+│ Confidence                 │
+│ Timestamp                  │
+│ Employee Hash              │
+│ Manager Hash               │
+│ Vector ID                  │
+└────────────────────────────┘
 
-backend_56/
-├── agents/
-│   ├── answer_agent.py
-│   └── retrieval_agent.py
-│
-├── database/
-│   ├── chroma_db.py
-│   └── rebuild_chroma.py
-│
-├── services/
-│   └── embedding.py
-│
-├── shared/
-│   └── config.py
-│
-└── api.py
+🗄️ Database
 
-🎨 Frontend Architecture
+The project uses PostgreSQL for structured application data.
 
-The frontend is built using React and Vite.
+Core entities
 
-frontend/
-├── src/
-│   ├── App.jsx
-│   ├── App.css
-│   ├── index.css
-│   │
-│   └── pages/
-│       ├── LandingPage.jsx
-│       ├── LandingPage.css
-│       ├── RoleSelection.jsx
-│       ├── RoleSelection.css
-│       ├── Login.jsx
-│       ├── Login.css
-│       ├── EmployeeDashboard.jsx
-│       ├── EmployeeDashboard.css
-│       ├── ManagerDashboard.jsx
-│       ├── ManagerDashboard.css
-│       ├── HRDashboard.jsx
-│       └── HRDashboard.css
-│
-├── package.json
-├── package-lock.json
-└── vite.config.js
+Users
+  │
+  ├──────────────┐
+  │              │
+Projects       Tasks
+  │              │
+  │              │
+  └──── Project Employees
+
+Knowledge
+   │
+   └── Identity Mapping
+
+Main tables
+
+Table
+
+Purpose
+
+users
+
+Authentication and roles
+
+knowledge
+
+Organizational knowledge
+
+tasks
+
+Task assignments and status
+
+projects
+
+Project information
+
+project_employees
+
+Project membership
+
+identity_mapping
+
+Identity/hash relationships
 
 📁 Project Structure
 
@@ -893,9 +668,15 @@ AI_PRE_LOSS_SYSTEM/
 │
 ├── backend/
 │   ├── collectors/
+│   │   ├── email.py
+│   │   ├── github.py
+│   │   ├── meeting.py
+│   │   └── slack.py
+│   │
 │   ├── connectors/
+│   │   └── google_drive.py
+│   │
 │   ├── meeting/
-│   ├── shared/
 │   └── main.py
 │
 ├── backend_3_4/
@@ -909,377 +690,65 @@ AI_PRE_LOSS_SYSTEM/
 │
 ├── backend_56/
 │   ├── agents/
+│   │   ├── answer_agent.py
+│   │   └── retrieval_agent.py
 │   ├── database/
 │   ├── services/
 │   ├── shared/
 │   └── api.py
 │
-├── chroma_db/
-│
 ├── frontend/
 │   ├── public/
 │   └── src/
+│       ├── App.jsx
+│       └── pages/
+│           ├── LandingPage.jsx
+│           ├── RoleSelection.jsx
+│           ├── Login.jsx
+│           ├── EmployeeDashboard.jsx
+│           ├── ManagerDashboard.jsx
+│           └── HRDashboard.jsx
 │
-└── .gitignore
+├── .gitignore
+└── README.md
 
 🧰 Technology Stack
 
+Layer
+
+Technologies
+
 Frontend
 
-React
-
-Vite
-
-JavaScript / JSX
-
-CSS
-
-Lucide React icons
+React, Vite, JSX, CSS
 
 Backend
 
-Python
-
-FastAPI
-
-SQLAlchemy
-
-Pydantic
+Python, FastAPI, SQLAlchemy, Pydantic
 
 Database
 
 PostgreSQL
 
-Vector Search
+Vector DB
 
 ChromaDB
 
-AI / LLM
+AI
 
-Grok-based services
-
-Retrieval Agent
-
-Answer Agent
-
-Knowledge Agent
+RAG, Embeddings, AI Agents
 
 Privacy
 
-Microsoft Presidio
-
-PII detection
-
-Anonymization
-
-Hashing
+Presidio, PII Detection, Anonymization, Hashing
 
 Integrations
 
-GitHub
+GitHub, Slack, Email, Google Drive, Meetings
 
-Slack
+⚡ Quick Start
 
-Email
-
-Google Drive
-
-Meeting processing
-
-🗄️ Database Design
-
-The current database model contains important entities such as:
-
-Knowledge
-
-knowledge
-├── id
-├── title
-├── summary
-├── category
-├── confidence
-├── timestamp
-├── employee_hash
-├── manager_hash
-└── vector_id
-
-Tasks
-
-tasks
-├── id
-├── title
-├── description
-├── priority
-├── status
-├── due_date
-├── employee_id
-├── manager_id
-└── created_at
-
-Projects
-
-projects
-├── id
-├── name
-├── description
-├── manager_id
-├── status
-└── created_at
-
-Project Employees
-
-project_employees
-├── id
-├── project_id
-├── employee_id
-└── added_at
-
-Identity Mapping
-
-Used to associate hashed identities with authorized organizational identities.
-
-Users
-
-The authentication model contains:
-
-users
-├── id
-├── user_id
-├── role
-├── password_hash
-├── display_name
-├── email
-├── is_active
-└── created_at
-
-🔌 API Overview
-
-The backend provides APIs for several functional areas.
-
-Authentication
-
-POST /auth/setup
-POST /auth/login
-
-Employee
-
-Examples include endpoints for:
-
-Employee overview
-Employee projects
-Employee tasks
-Employee knowledge
-Employee activity
-
-Manager
-
-Examples include:
-
-Manager overview
-Employees
-Projects
-Tasks
-Activity
-
-HR
-
-Examples include:
-
-HR overview
-Employees
-Projects
-Tasks
-Activity
-
-AI
-
-POST /ask
-
-Knowledge Upload
-
-POST /upload
-
-The exact endpoint set can evolve as the platform is developed.
-
-🔒 Security Design
-
-The system follows a defense-in-depth approach.
-
-Authentication
-      ↓
-Role Validation
-      ↓
-Authorization
-      ↓
-Privacy Filtering
-      ↓
-Knowledge Retrieval
-      ↓
-AI Generation
-
-This is important because authentication alone does not guarantee that a user should see every piece of organizational knowledge.
-
-🧪 Testing Strategy
-
-Testing is divided into several layers.
-
-Authentication Tests
-
-Correct ID + Password       → PASS
-Wrong Password              → DENY
-Wrong Role                  → DENY
-Unknown User                → DENY
-Inactive User               → DENY
-
-Authorization Tests
-
-Employee → Employee data   → PASS
-Employee → HR data         → DENY
-
-Manager → Team data        → PASS
-Manager → Restricted HR    → DENY
-
-RAG Tests
-
-Known question
-    ↓
-Relevant knowledge
-    ↓
-Grounded answer
-
-Negative case:
-
-Unknown question
-    ↓
-No sufficient knowledge
-
-Privacy Tests
-
-Sensitive information should be detected and protected before being exposed to downstream AI components.
-
-📊 Current Project Status
-
-Completed
-
-Project architecture
-
-React frontend
-
-Landing page
-
-Role selection
-
-Login UI
-
-Employee dashboard
-
-Manager dashboard
-
-HR dashboard
-
-PostgreSQL integration
-
-Project APIs
-
-Task APIs
-
-Activity APIs
-
-Knowledge APIs
-
-Development authentication
-
-Password hashing
-
-Employee authentication test
-
-Manager authentication test
-
-HR authentication test
-
-RAG components
-
-Retrieval agent
-
-Answer agent
-
-Privacy components
-
-PII detection components
-
-Anonymization components
-
-GitHub/email/Slack/meeting collectors
-
-Google Drive connector
-
-GitHub repository backup
-
-🚧 Remaining Development
-
-The following features are planned for completion:
-
-Authentication Security
-
-JWT access tokens
-
-Token expiration
-
-Protected frontend routes
-
-Role-based route guards
-
-Logout/session cleanup
-
-AI Assistant
-
-Final dashboard integration
-
-Role-aware assistant context
-
-Knowledge permission filtering
-
-Improved response validation
-
-RAG
-
-Final retrieval pipeline
-
-Retrieval evaluation
-
-Negative RAG testing
-
-Hallucination prevention
-
-Retrieval quality improvements
-
-Privacy
-
-Final end-to-end privacy pipeline
-
-PII evaluation
-
-Sensitive information access tests
-
-Privacy-aware retrieval
-
-Testing
-
-Full end-to-end testing
-
-Permission testing
-
-Security testing
-
-RAG evaluation
-
-Negative test suite
-
-Production deployment, company OAuth configuration, and production credentials are intentionally treated as a later phase.
-
-⚙️ Installation
-
-1. Clone the repository
+1. Clone
 
 git clone <YOUR_REPOSITORY_URL>
 cd AI_PRE_LOSS_SYSTEM
@@ -1288,124 +757,317 @@ cd AI_PRE_LOSS_SYSTEM
 
 cd frontend
 npm install
-
-3. Backend
-
-Create the required Python environment:
-
-python -m venv venv
-
-Activate it on Windows:
-
-venv\Scripts\activate
-
-Install dependencies according to the backend requirements.
-
-For the main backend:
-
-pip install -r backend/requirements.txt
-
-Additional backend components may have their own dependency requirements.
-
-▶️ Running the Project
-
-Start Frontend
-
-cd frontend
 npm run dev
 
-The Vite development server will normally be available at:
+Frontend:
 
 http://localhost:5173
 
-Start Backend
+3. Backend
 
-Use the project's configured Python entry point.
+Create a Python environment:
 
-For example:
+python -m venv venv
+
+Windows:
+
+venv\Scripts\activate
+
+Install dependencies:
+
+pip install -r backend/requirements.txt
+
+Run the configured API:
 
 python -m backend_56.api
 
-The API documentation can then be accessed through FastAPI's Swagger UI:
+Swagger:
 
 http://127.0.0.1:8000/docs
 
-🧪 Development Credentials
+🔑 Development Authentication
 
-For local development only:
+⚠️ LOCAL DEVELOPMENT ONLY
 
 Role
 
 ID
 
-Password
-
 👨‍💻 Employee
 
 EMP001
-
-Employee@123
 
 👔 Manager
 
 MANAGER001
 
-Manager@123
-
 🧑‍💼 HR
 
 HR001
 
-HR@123
+Passwords should remain local and must never be committed to GitHub.
 
-⚠️ Important
+Production should use secure company authentication such as SSO/OAuth.
 
-These credentials are development credentials only.
+🧪 Testing
 
-Do not use them in production.
+Authentication
 
-Production authentication should use:
+Employee login
 
-Company identity provider
+Manager login
 
-Secure password policies
+HR login
 
-OAuth / SSO
+Password verification
 
-JWT/session management
+Role validation
+
+JWT/session
+
+Token expiration
+
+Protected routes
+
+Logout
+
+Dashboards
+
+Employee dashboard
+
+Manager dashboard
+
+HR dashboard
+
+Projects
+
+Tasks
+
+Activity
+
+Knowledge information
+
+AI
+
+Retrieval Agent
+
+Answer Agent
+
+Vector search components
+
+Final dashboard assistant integration
+
+Full negative-RAG evaluation
+
+Retrieval quality evaluation
+
+Privacy
+
+PII detection component
+
+Presidio integration
+
+Anonymization component
+
+Hashing service
+
+End-to-end privacy validation
+
+📊 Current Status
+
+Product Foundation
+
+Module
+
+Status
+
+Landing Page
+
+✅ Complete
+
+Role Selection
+
+✅ Complete
+
+Basic Authentication
+
+✅ Complete
+
+Employee Dashboard
+
+✅ Complete
+
+Manager Dashboard
+
+✅ Complete
+
+HR Dashboard
+
+✅ Complete
+
+Backend APIs
+
+🟡 In Progress
+
+Database
+
+✅ Complete
+
+Project Management
+
+✅ Complete
+
+Task Management
+
+✅ Complete
+
+AI and Security
+
+Module
+
+Status
+
+Retrieval Agent
+
+✅ Implemented
+
+Answer Agent
+
+✅ Implemented
+
+Vector Search
+
+✅ Implemented
+
+AI Assistant Integration
+
+🟡 In Progress
+
+RAG Finalization
+
+🟡 In Progress
+
+Negative RAG
+
+🟡 In Progress
+
+Privacy Pipeline
+
+🟡 In Progress
+
+JWT Security
+
+⏳ Next
+
+Protected Routes
+
+⏳ Next
+
+Logout
+
+⏳ Next
+
+Full Testing
+
+⏳ Pending
+
+🛣️ Roadmap
+
+Phase 1 — Product Foundation
+
+Frontend
+
+Landing Page
+
+Role Selection
+
+Login
+
+Employee Dashboard
+
+Manager Dashboard
+
+HR Dashboard
+
+Phase 2 — Core Backend
+
+PostgreSQL
+
+Projects
+
+Tasks
+
+Activity
+
+Knowledge APIs
+
+Authentication API
+
+Phase 3 — AI Knowledge
+
+Retrieval Agent
+
+Answer Agent
+
+Embedding components
+
+Vector database
+
+Final RAG evaluation
+
+Negative RAG hardening
+
+Phase 4 — Security
+
+Password hashing
+
+Role validation
+
+PII detection components
+
+Anonymization components
+
+JWT
+
+Protected routes
+
+Logout
+
+Complete authorization testing
+
+Phase 5 — Enterprise Intelligence
+
+GitHub collector
+
+Slack collector
+
+Email collector
+
+Meeting pipeline
+
+Google Drive connector
+
+Final ingestion orchestration
+
+Permission-aware retrieval
+
+Phase 6 — Production
+
+Company SSO
+
+OAuth configuration
 
 Secret management
 
-MFA where appropriate
+HTTPS
 
-🔄 Development Workflow
+Monitoring
 
-Recommended workflow:
+Production deployment
 
-1. Create feature
-      ↓
-2. Test locally
-      ↓
-3. Check git status
-      ↓
-4. Add safe files
-      ↓
-5. Commit
-      ↓
-6. Push
-      ↓
-7. Continue next feature
+🔒 Git and Secrets
 
-Example:
-
-git status
-git add -A
-git commit -m "Add authentication security"
-git push
-
-🔐 Git & Secrets
-
-The repository intentionally excludes sensitive local files through .gitignore.
+Sensitive files are intentionally excluded from version control.
 
 Examples:
 
@@ -1417,46 +1079,48 @@ token.json
 __pycache__/
 *.pyc
 chroma_db/
+local state
+local meeting data
 
-Never commit:
+Never commit
 
-API keys
+❌ API keys
+❌ Passwords
+❌ OAuth secrets
+❌ Access tokens
+❌ Private certificates
+❌ Production credentials
+❌ Private company data
 
-Passwords
+🚨 Enterprise Security
 
-OAuth client secrets
-
-Access tokens
-
-Private certificates
-
-Production credentials
-
-Private company data
-
-🌐 Production Considerations
-
-Production deployment is a later phase.
-
-When deployed for a real organization, the system should introduce:
+Production deployment should introduce:
 
 Company Identity Provider
-          ↓
-       SSO/OAuth
-          ↓
-      JWT/Session
-          ↓
+          │
+          ▼
+       SSO / OAuth
+          │
+          ▼
+     JWT / Session
+          │
+          ▼
  Role-Based Authorization
-          ↓
- Privacy Layer
-          ↓
- Knowledge/RAG
+          │
+          ▼
+    Privacy Filtering
+          │
+          ▼
+     RAG / Retrieval
+          │
+          ▼
+      AI Assistant
 
-Production deployment should also include:
+Additional production requirements:
 
 HTTPS
 
-Secure secret storage
+Secure secret management
 
 Database migrations
 
@@ -1466,33 +1130,19 @@ Logging
 
 Rate limiting
 
-Backup strategy
-
 Access auditing
+
+Backup strategy
 
 Strong authentication
 
-Company-approved OAuth scopes
+MFA where appropriate
 
 🔮 Future Enhancements
 
-Potential future improvements include:
+🧠 Knowledge Graph
 
-Enterprise SSO
-
-Integrate with:
-
-Microsoft Entra ID
-
-Google Workspace
-
-Okta
-
-Other company identity providers
-
-Advanced Knowledge Graph
-
-Build relationships between:
+Create relationships between:
 
 Employee
    ↕
@@ -1506,161 +1156,126 @@ Document
    ↕
 Meeting
 
-Better RAG Evaluation
+📊 Advanced RAG Evaluation
 
-Track:
+Measure:
 
-Recall
+Retrieval recall
 
-Precision
+Retrieval precision
 
-Retrieval relevance
-
-Context quality
+Context relevance
 
 Answer faithfulness
 
+Hallucination rate
+
 Citation accuracy
 
-Intelligent Alerts
+🚨 Knowledge Loss Alerts
 
 Detect:
 
-Missing documentation
+Undocumented decisions
 
-Repeated knowledge
+Repeated questions
 
-Important undocumented decisions
+Missing project documentation
 
-Potential knowledge loss
+Critical employee knowledge
 
-Sensitive information exposure
+Knowledge gaps
 
-Employee Knowledge Transfer
+🤝 Knowledge Transfer
 
-Before an employee leaves:
+When an employee changes role or leaves:
 
 Employee Knowledge
         ↓
 Knowledge Extraction
         ↓
+Privacy Filtering
+        ↓
 Validation
         ↓
-Structured Knowledge
-        ↓
-Organizational Knowledge Base
+Organizational Memory
 
-This directly supports the project's loss-prevention objective.
+🌟 Why This Project?
 
-🧠 Why This Project Matters
+This is not simply another chatbot.
 
-Traditional enterprise systems store information.
+The system combines:
 
-This system focuses on:
+             ORGANIZATIONAL KNOWLEDGE
+                       │
+             ┌─────────┼─────────┐
+             ▼         ▼         ▼
+          Privacy   Retrieval  Access
+             │         │         │
+             └─────────┼─────────┘
+                       ▼
+                  AI ASSISTANT
 
-Understanding, preserving, protecting, and retrieving organizational knowledge.
+Key principles
 
-The goal is not simply to build another chatbot.
+Knowledge should not be lost.
 
-The goal is to build a controlled organizational intelligence layer where:
+Sensitive information should not be exposed unnecessarily.
 
-Knowledge
-   +
-Privacy
-   +
-Authorization
-   +
-Retrieval
-   +
-AI
+AI should answer from evidence.
 
-work together.
+Users should only access authorized information.
+
+When evidence is missing, the system should say so.
 
 🏁 Project Vision
 
-The long-term vision is:
+The long-term goal is to create an organization's AI-powered knowledge memory.
 
                  COMPANY KNOWLEDGE
-                        │
-        ┌───────────────┼────────────────┐
-        │               │                │
-      GitHub          Slack            Email
-        │               │                │
-        └───────────────┼────────────────┘
-                        │
-                     Meetings
-                        │
-                        ▼
-                KNOWLEDGE INGESTION
-                        │
-                        ▼
-                 PRIVACY ENGINE
-                        │
-                        ▼
-                KNOWLEDGE MEMORY
-                        │
-                        ▼
-                  RAG / RETRIEVAL
-                        │
-                        ▼
-                 AI KNOWLEDGE AGENT
-                        │
-        ┌───────────────┼────────────────┐
-        │               │                │
-    EMPLOYEE         MANAGER             HR
-        │               │                │
-        └───────────────┼────────────────┘
-                        ▼
-                 SECURE AI ASSISTANT
+                         │
+        ┌────────────────┼────────────────┐
+        │                │                │
+      GitHub           Slack            Email
+        │                │                │
+        └────────────────┼────────────────┘
+                         │
+                      Meetings
+                         │
+                         ▼
+                   Data Ingestion
+                         │
+                         ▼
+                    Privacy
+                         │
+                         ▼
+                 Knowledge Memory
+                         │
+                         ▼
+                   Vector Search
+                         │
+                         ▼
+                      RAG
+                         │
+                         ▼
+                  Secure AI Agent
+                         │
+              ┌──────────┼──────────┐
+              ▼          ▼          ▼
+          Employee     Manager      HR
 
-The system aims to make organizational knowledge:
+💬 Final Thought
 
-Discoverable.
+Preserve Knowledge. Protect Privacy. Empower Teams.
 
-Useful.
+The AI Loss Prevention System brings enterprise data, privacy engineering, retrieval, authorization, and AI together into one intelligent platform.
 
-Private.
+⭐ Project Status
 
-Permission-aware.
+Current milestone: Core platform + dashboards + knowledge/RAG foundation completed.
 
-Grounded.
+Next milestone: JWT security → protected routes → logout → final AI assistant → RAG hardening → privacy validation → complete testing.
 
-Preserved.
+🛡️ AI Loss Prevention System
 
-👨‍💻 Project Development
-
-This project is being developed as an end-to-end AI system combining:
-
-Full-stack development
-
-Backend APIs
-
-Database engineering
-
-AI agents
-
-Retrieval-Augmented Generation
-
-Vector search
-
-Privacy engineering
-
-PII detection
-
-Enterprise integrations
-
-Role-based access control
-
-📄 License
-
-This project is currently intended for educational, development, and demonstration purposes.
-
-Add an appropriate open-source license before publicly distributing or commercializing the project.
-
-⭐ Final Note
-
-AI Loss Prevention is designed around a simple principle:
-
-Enterprise knowledge should not be lost, and it should not be exposed without authorization.
-
-The platform brings organizational data, privacy protection, retrieval, and AI assistance together to create a safer and more useful enterprise knowledge system.
+Intelligent Enterprise Knowledge Management
