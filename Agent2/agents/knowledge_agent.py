@@ -416,12 +416,12 @@ class KnowledgeAgent:
                 cleaned
             )
 
-        except json.JSONDecodeError as e:
+        except json.JSONDecodeError as parse_error:
 
             raise ValueError(
                 "Invalid JSON returned by LLM:\n"
                 f"{response}"
-            ) from e
+            ) from parse_error
 
 
         if not isinstance(
@@ -525,19 +525,21 @@ MALFORMED RESPONSE:
     # ========================================================
 
     def _call_and_parse(
-    self,
-    prompt: str
+        self,
+        prompt: str
     ) -> dict:
 
         response = self.llm.generate(
-        prompt
+            prompt
         )
+
 
         try:
 
             data = self._parse_json(
-            response
+                response
             )
+
 
             print(
                 "\n========== PARSED LLM JSON =========="
@@ -545,8 +547,8 @@ MALFORMED RESPONSE:
 
             print(
                 json.dumps(
-                data,
-                indent=2
+                    data,
+                    indent=2
                 )
             )
 
@@ -554,59 +556,72 @@ MALFORMED RESPONSE:
                 "====================================="
             )
 
+
             return data
 
-        except ValueError as e:
+
+        except ValueError as parse_error:
 
             print(
-            "\n========== RAW LLM RESPONSE =========="
-        )
+                "\n========== RAW LLM RESPONSE =========="
+            )
 
-        print(response)
-
-        print(
-            "========== PARSER ERROR =========="
-        )
-
-        print(e)
-
-        print(
-            "====================================="
-        )
-
-        print(
-            "Attempting automatic JSON repair..."
-        )
-
-        try:
-
-            repaired = self._repair_response(
+            print(
                 response
             )
 
             print(
-                "✓ JSON repair successful."
-            )
-
-            return repaired
-
-        except ValueError as repair_error:
-
-            print(
-                "\n========== REPAIR ERROR =========="
+                "========== PARSER ERROR =========="
             )
 
             print(
-                repair_error
+                parse_error
             )
 
             print(
-                "================================="
+                "====================================="
             )
 
-            return {
-                "knowledge_cards": []
-            }
+
+            print(
+                "Attempting automatic JSON repair..."
+            )
+
+
+            try:
+
+                repaired = self._repair_response(
+                    response
+                )
+
+
+                print(
+                    "✓ JSON repair successful."
+                )
+
+
+                return repaired
+
+
+            except ValueError as repair_error:
+
+                print(
+                    "\n========== REPAIR ERROR =========="
+                )
+
+                print(
+                    repair_error
+                )
+
+                print(
+                    "================================="
+                )
+
+
+                return {
+                    "knowledge_cards": []
+                }
+
 
     # ========================================================
     # GET RAW CARDS
@@ -774,14 +789,14 @@ MALFORMED RESPONSE:
                 **normalized
             )
 
-        except Exception as e:
+        except Exception as card_error:
 
             print(
                 f"⚠ Invalid KnowledgeCard skipped: {title}"
             )
 
             print(
-                f"  Error: {e}"
+                f"  Error: {card_error}"
             )
 
             return None

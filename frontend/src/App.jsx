@@ -1,42 +1,89 @@
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+
+import LandingPage from "./pages/LandingPage";
+import RoleSelection from "./pages/RoleSelection";
+import Login from "./pages/Login";
+
 import EmployeeDashboard from "./pages/EmployeeDashboard";
 import ManagerDashboard from "./pages/ManagerDashboard";
 import HRDashboard from "./pages/HRDashboard";
-import RoleSelection from "./pages/RoleSelection";
-import Login from "./pages/Login";
-import LandingPage from "./pages/LandingPage";
+
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
-  const path = window.location.pathname;
+  return (
+    <BrowserRouter>
+      <Routes>
 
-  // Main landing page
-  if (path === "/") {
-    return <LandingPage />;
-  }
+        {/* ================= PUBLIC ROUTES ================= */}
 
-  // Role selection
-  if (path === "/roles") {
-    return <RoleSelection />;
-  }
+        <Route
+          path="/"
+          element={<LandingPage />}
+        />
 
-  // Login
-  if (path === "/login") {
-    return <Login />;
-  }
+        <Route
+          path="/roles"
+          element={<RoleSelection />}
+        />
 
-  // Dashboards
-  if (path === "/manager") {
-    return <ManagerDashboard />;
-  }
+        <Route
+          path="/login"
+          element={<Login />}
+        />
 
-  if (path === "/hr") {
-    return <HRDashboard />;
-  }
 
-  if (path === "/employee") {
-    return <EmployeeDashboard />;
-  }
+        {/* ================= EMPLOYEE ================= */}
 
-  return <LandingPage />;
+        <Route
+          path="/employee"
+          element={
+            <ProtectedRoute allowedRole="employee">
+              <EmployeeDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* ================= MANAGER ================= */}
+
+        <Route
+          path="/manager"
+          element={
+            <ProtectedRoute allowedRole="manager">
+              <ManagerDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* ================= HR ================= */}
+
+        <Route
+          path="/hr"
+          element={
+            <ProtectedRoute allowedRole="hr">
+              <HRDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* ================= UNKNOWN ROUTE ================= */}
+
+        <Route
+          path="*"
+          element={<Navigate to="/" replace />}
+        />
+
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
 export default App;

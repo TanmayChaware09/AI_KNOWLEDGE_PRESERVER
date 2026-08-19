@@ -23,6 +23,7 @@ import {
   MessageCircle,
   Send,
   Sparkles,
+  LogOut,
 } from "lucide-react";
 
 import "./ManagerDashboard.css";
@@ -34,7 +35,66 @@ import "./ManagerDashboard.css";
 
 const API_BASE = "http://127.0.0.1:8000";
 
-const MANAGER_ID = "MANAGER001";
+const MANAGER_ID =
+  localStorage.getItem("user_identifier") || "MANAGER001";
+
+
+// ============================================================
+// AUTH
+// ============================================================
+
+const getToken = () => {
+  return localStorage.getItem("auth_token");
+};
+
+
+const logout = () => {
+  localStorage.removeItem("auth_token");
+  localStorage.removeItem("user_role");
+  localStorage.removeItem("user_identifier");
+  localStorage.removeItem("remember_me");
+
+  window.location.href = "/";
+};
+
+
+// ============================================================
+// AUTHENTICATED FETCH
+// ============================================================
+
+const authFetch = async (url, options = {}) => {
+
+  const token = getToken();
+
+  if (!token) {
+    logout();
+    throw new Error("Authentication required.");
+  }
+
+  const headers = {
+    ...(options.headers || {}),
+    Authorization: `Bearer ${token}`,
+  };
+
+  const response = await fetch(url, {
+    ...options,
+    headers,
+  });
+
+  if (response.status === 401 || response.status === 403) {
+
+    localStorage.removeItem("auth_token");
+
+    alert("Your session has expired. Please login again.");
+
+    window.location.href = "/login?role=manager";
+
+    throw new Error("Authentication expired.");
+
+  }
+
+  return response;
+};
 
 
 // ============================================================
@@ -62,6 +122,21 @@ function getGreeting() {
 // ============================================================
 
 function ManagerDashboard() {
+
+  // ============================================================
+  // VERIFY AUTH
+  // ============================================================
+
+  useEffect(() => {
+
+    const token = getToken();
+    const role = localStorage.getItem("user_role");
+
+    if (!token || role !== "manager") {
+      window.location.href = "/login?role=manager";
+    }
+
+  }, []);
 
 
   // ============================================================
@@ -150,11 +225,8 @@ function ManagerDashboard() {
 
   const [projectForm, setProjectForm] =
     useState({
-
       name: "",
-
       description: "",
-
     });
 
 
@@ -164,9 +236,7 @@ function ManagerDashboard() {
 
   const [employeeForm, setEmployeeForm] =
     useState({
-
       employee_id: "",
-
     });
 
 
@@ -176,19 +246,12 @@ function ManagerDashboard() {
 
   const [taskForm, setTaskForm] =
     useState({
-
       project_id: "",
-
       employee_id: "",
-
       title: "",
-
       description: "",
-
       priority: "Medium",
-
       due_date: "",
-
     });
 
 
@@ -201,9 +264,7 @@ function ManagerDashboard() {
     try {
 
       setLoading(true);
-
       setError("");
-
 
       const [
         overviewResponse,
@@ -213,48 +274,23 @@ function ManagerDashboard() {
         activityResponse,
       ] = await Promise.all([
 
-
-        // ------------------------------------------------------
-        // OVERVIEW
-        // ------------------------------------------------------
-
-        fetch(
+        authFetch(
           `${API_BASE}/manager/overview?manager_id=${MANAGER_ID}`
         ),
 
-
-        // ------------------------------------------------------
-        // PROJECTS
-        // ------------------------------------------------------
-
-        fetch(
+        authFetch(
           `${API_BASE}/manager/projects?manager_id=${MANAGER_ID}`
         ),
 
-
-        // ------------------------------------------------------
-        // TASKS
-        // ------------------------------------------------------
-
-        fetch(
+        authFetch(
           `${API_BASE}/manager/tasks?manager_id=${MANAGER_ID}`
         ),
 
-
-        // ------------------------------------------------------
-        // TEAM KNOWLEDGE
-        // ------------------------------------------------------
-
-        fetch(
+        authFetch(
           `${API_BASE}/manager/knowledge?manager_id=${MANAGER_ID}`
         ),
 
-
-        // ------------------------------------------------------
-        // TEAM ACTIVITY
-        // ------------------------------------------------------
-
-        fetch(
+        authFetch(
           `${API_BASE}/manager/activity?manager_id=${MANAGER_ID}`
         ),
 
@@ -262,17 +298,11 @@ function ManagerDashboard() {
 
 
       if (
-
         !overviewResponse.ok ||
-
         !projectsResponse.ok ||
-
         !tasksResponse.ok ||
-
         !knowledgeResponse.ok ||
-
         !activityResponse.ok
-
       ) {
 
         throw new Error(
@@ -281,10 +311,6 @@ function ManagerDashboard() {
 
       }
 
-
-      // ========================================================
-      // PARSE RESPONSES
-      // ========================================================
 
       const overviewData =
         await overviewResponse.json();
@@ -301,10 +327,6 @@ function ManagerDashboard() {
       const activityData =
         await activityResponse.json();
 
-
-      // ========================================================
-      // SET STATE
-      // ========================================================
 
       setOverview(
         overviewData
@@ -334,10 +356,16 @@ function ManagerDashboard() {
         err
       );
 
-      setError(
-        "Unable to connect to the backend. Make sure FastAPI is running."
-      );
+      if (
+        err.message !== "Authentication expired." &&
+        err.message !== "Authentication required."
+      ) {
 
+        setError(
+          "Unable to connect to the backend. Make sure FastAPI is running."
+        );
+
+      }
 
     } finally {
 
@@ -354,7 +382,12 @@ function ManagerDashboard() {
 
   useEffect(() => {
 
-    loadDashboard();
+    const token = getToken();
+    const role = localStorage.getItem("user_role");
+
+    if (token && role === "manager") {
+      loadDashboard();
+    }
 
   }, []);
 
@@ -363,16 +396,11 @@ function ManagerDashboard() {
   // CREATE PROJECT
   // ============================================================
 
-  const createProject = async (
-    event
-  ) => {
+  const createProject = async (event) => {
 
     event.preventDefault();
 
-
-    if (
-      !projectForm.name.trim()
-    ) {
+    if (!projectForm.name.trim()) {
 
       alert(
         "Please enter project name."
@@ -387,10 +415,8 @@ function ManagerDashboard() {
 
       setSubmitting(true);
 
-
       const formData =
         new FormData();
-
 
       formData.append(
         "name",
@@ -409,14 +435,11 @@ function ManagerDashboard() {
 
 
       const response =
-        await fetch(
+        await authFetch(
           `${API_BASE}/manager/projects`,
           {
-
             method: "POST",
-
             body: formData,
-
           }
         );
 
@@ -436,18 +459,11 @@ function ManagerDashboard() {
 
 
       setProjectForm({
-
         name: "",
-
         description: "",
-
       });
 
-
-      setProjectModal(
-        false
-      );
-
+      setProjectModal(false);
 
       await loadDashboard();
 
@@ -474,12 +490,9 @@ function ManagerDashboard() {
   // ADD EMPLOYEE
   // ============================================================
 
-  const addEmployee = async (
-    event
-  ) => {
+  const addEmployee = async (event) => {
 
     event.preventDefault();
-
 
     if (
       !selectedProject ||
@@ -495,10 +508,8 @@ function ManagerDashboard() {
 
       setSubmitting(true);
 
-
       const formData =
         new FormData();
-
 
       formData.append(
         "employee_id",
@@ -512,18 +523,12 @@ function ManagerDashboard() {
 
 
       const response =
-        await fetch(
-
+        await authFetch(
           `${API_BASE}/manager/projects/${selectedProject.id}/employees`,
-
           {
-
             method: "POST",
-
             body: formData,
-
           }
-
         );
 
 
@@ -542,16 +547,10 @@ function ManagerDashboard() {
 
 
       setEmployeeForm({
-
         employee_id: "",
-
       });
 
-
-      setEmployeeModal(
-        false
-      );
-
+      setEmployeeModal(false);
 
       await loadDashboard();
 
@@ -578,21 +577,14 @@ function ManagerDashboard() {
   // ASSIGN TASK
   // ============================================================
 
-  const assignTask = async (
-    event
-  ) => {
+  const assignTask = async (event) => {
 
     event.preventDefault();
 
-
     if (
-
       !taskForm.project_id ||
-
       !taskForm.employee_id.trim() ||
-
       !taskForm.title.trim()
-
     ) {
 
       alert(
@@ -608,40 +600,33 @@ function ManagerDashboard() {
 
       setSubmitting(true);
 
-
       const formData =
         new FormData();
-
 
       formData.append(
         "title",
         taskForm.title
       );
 
-
       formData.append(
         "description",
         taskForm.description
       );
-
 
       formData.append(
         "priority",
         taskForm.priority
       );
 
-
       formData.append(
         "employee_id",
         taskForm.employee_id
       );
 
-
       formData.append(
         "project_id",
         taskForm.project_id
       );
-
 
       formData.append(
         "manager_id",
@@ -649,9 +634,7 @@ function ManagerDashboard() {
       );
 
 
-      if (
-        taskForm.due_date
-      ) {
+      if (taskForm.due_date) {
 
         formData.append(
           "due_date",
@@ -662,18 +645,12 @@ function ManagerDashboard() {
 
 
       const response =
-        await fetch(
-
+        await authFetch(
           `${API_BASE}/manager/tasks`,
-
           {
-
             method: "POST",
-
             body: formData,
-
           }
-
         );
 
 
@@ -692,26 +669,15 @@ function ManagerDashboard() {
 
 
       setTaskForm({
-
         project_id: "",
-
         employee_id: "",
-
         title: "",
-
         description: "",
-
         priority: "Medium",
-
         due_date: "",
-
       });
 
-
-      setTaskModal(
-        false
-      );
-
+      setTaskModal(false);
 
       await loadDashboard();
 
@@ -738,36 +704,38 @@ function ManagerDashboard() {
   // DELETE PROJECT
   // ============================================================
 
-  const deleteProject = async (
-    project
-  ) => {
+  const deleteProject = async (project) => {
 
     if (!project) {
       return;
     }
 
-    const confirmed = window.confirm(
-      `Delete "${project.name}"?\n\nOnly projects with no employees assigned can be deleted.`
-    );
+    const confirmed =
+      window.confirm(
+        `Delete "${project.name}"?\n\nOnly projects with no employees assigned can be deleted.`
+      );
 
     if (!confirmed) {
       return;
     }
+
 
     try {
 
       setSubmitting(true);
 
       const response =
-        await fetch(
+        await authFetch(
           `${API_BASE}/manager/projects/${project.id}?manager_id=${MANAGER_ID}`,
           {
             method: "DELETE",
           }
         );
 
+
       const data =
         await response.json();
+
 
       if (!response.ok) {
 
@@ -779,12 +747,14 @@ function ManagerDashboard() {
 
       }
 
+
       alert(
         data.message ||
         "Project deleted successfully."
       );
 
       await loadDashboard();
+
 
     } catch (err) {
 
@@ -797,6 +767,7 @@ function ManagerDashboard() {
         err.message ||
         "Unable to delete project."
       );
+
 
     } finally {
 
@@ -817,11 +788,13 @@ function ManagerDashboard() {
       event.preventDefault();
     }
 
-    const question = aiQuestion.trim();
+    const question =
+      aiQuestion.trim();
 
     if (!question || aiLoading) {
       return;
     }
+
 
     try {
 
@@ -829,31 +802,38 @@ function ManagerDashboard() {
       setAiError("");
       setAiAnswer("");
 
-      // The existing RAG endpoint is reused here.
-      // If your /ask endpoint expects a different payload,
-      // only this fetch body needs to be adjusted.
-      const response = await fetch(
-        `${API_BASE}/ask`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            question,
-          }),
-        }
-      );
 
-      const data = await response.json().catch(() => ({}));
+      const response =
+        await authFetch(
+          `${API_BASE}/ask`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              question,
+            }),
+          }
+        );
+
+
+      const data =
+        await response
+          .json()
+          .catch(() => ({}));
+
 
       if (!response.ok) {
+
         throw new Error(
           data.detail ||
           data.message ||
           "Unable to get an AI response."
         );
+
       }
+
 
       const answer =
         data.answer ||
@@ -862,17 +842,23 @@ function ManagerDashboard() {
         data.message ||
         "No answer was returned.";
 
+
       setAiAnswer(answer);
 
-      setAiHistory((previous) => [
-        ...previous,
-        {
-          question,
-          answer,
-        },
-      ]);
+
+      setAiHistory(
+        (previous) => [
+          ...previous,
+          {
+            question,
+            answer,
+          },
+        ]
+      );
+
 
       setAiQuestion("");
+
 
     } catch (err) {
 
@@ -885,6 +871,7 @@ function ManagerDashboard() {
         err.message ||
         "Unable to connect to the AI Assistant."
       );
+
 
     } finally {
 
@@ -899,25 +886,15 @@ function ManagerDashboard() {
   // OPEN EMPLOYEE MODAL
   // ============================================================
 
-  const openEmployeeModal = (
-    project
-  ) => {
+  const openEmployeeModal = (project) => {
 
-    setSelectedProject(
-      project
-    );
-
+    setSelectedProject(project);
 
     setEmployeeForm({
-
       employee_id: "",
-
     });
 
-
-    setEmployeeModal(
-      true
-    );
+    setEmployeeModal(true);
 
   };
 
@@ -926,9 +903,7 @@ function ManagerDashboard() {
   // OPEN TASK MODAL
   // ============================================================
 
-  const openTaskModal = async (
-    project = null
-  ) => {
+  const openTaskModal = async (project = null) => {
 
     setTaskForm({
 
@@ -938,50 +913,51 @@ function ManagerDashboard() {
           : "",
 
       employee_id: "",
-
       title: "",
-
       description: "",
-
       priority: "Medium",
-
       due_date: "",
 
     });
 
-    setTaskModal(
-      true
-    );
+    setTaskModal(true);
 
-    // If the selected project has exactly one employee,
-    // automatically fill that employee ID.
+
     if (project) {
 
       try {
 
         const response =
-          await fetch(
+          await authFetch(
             `${API_BASE}/manager/projects/${project.id}?manager_id=${MANAGER_ID}`
           );
+
 
         if (!response.ok) {
           return;
         }
 
+
         const data =
           await response.json();
 
+
         const employees =
           data?.project?.employees || [];
+
 
         if (employees.length === 1) {
 
           setTaskForm(
             (previous) => ({
               ...previous,
-              project_id: String(project.id),
+
+              project_id:
+                String(project.id),
+
               employee_id:
-                employees[0].employee_id || "",
+                employees[0].employee_id ||
+                "",
             })
           );
 
@@ -1002,7 +978,7 @@ function ManagerDashboard() {
 
 
   // ============================================================
-  // NAVIGATION ITEMS
+  // NAVIGATION
   // ============================================================
 
   const navigation = [
@@ -1078,9 +1054,7 @@ function ManagerDashboard() {
 
           <button
             className="manager-btn manager-btn-secondary"
-            onClick={
-              loadDashboard
-            }
+            onClick={loadDashboard}
           >
 
             <RefreshCw size={15} />
@@ -1108,12 +1082,7 @@ function ManagerDashboard() {
       </div>
 
 
-      {/* ======================================================
-          STATS
-      ====================================================== */}
-
       <div className="manager-stats">
-
 
         <div className="manager-stat-card">
 
@@ -1230,18 +1199,10 @@ function ManagerDashboard() {
 
         </div>
 
-
       </div>
 
 
-      {/* ======================================================
-          MIDDLE GRID
-      ====================================================== */}
-
       <div className="manager-middle-grid">
-
-
-        {/* PROJECTS */}
 
         <div className="manager-dashboard-card">
 
@@ -1298,46 +1259,44 @@ function ManagerDashboard() {
 
               projects
                 .slice(0, 4)
-                .map(
-                  (project) => (
+                .map((project) => (
 
-                    <div
-                      className="manager-project-item"
-                      key={project.id}
-                    >
+                  <div
+                    className="manager-project-item"
+                    key={project.id}
+                  >
 
-                      <div className="manager-project-left">
+                    <div className="manager-project-left">
 
-                        <div className="manager-project-icon">
-                          <FolderKanban size={17} />
-                        </div>
+                      <div className="manager-project-icon">
+                        <FolderKanban size={17} />
+                      </div>
 
-                        <div>
+                      <div>
 
-                          <strong>
-                            {project.name}
-                          </strong>
+                        <strong>
+                          {project.name}
+                        </strong>
 
-                          <span>
-                            {project.employee_count} employee
-                            {project.employee_count !== 1
-                              ? "s"
-                              : ""}
-                          </span>
-
-                        </div>
+                        <span>
+                          {project.employee_count} employee
+                          {project.employee_count !== 1
+                            ? "s"
+                            : ""}
+                        </span>
 
                       </div>
 
-
-                      <span className="manager-status">
-                        {project.status}
-                      </span>
-
                     </div>
 
-                  )
-                )
+
+                    <span className="manager-status">
+                      {project.status}
+                    </span>
+
+                  </div>
+
+                ))
 
             )}
 
@@ -1345,8 +1304,6 @@ function ManagerDashboard() {
 
         </div>
 
-
-        {/* TASK SUMMARY */}
 
         <div className="manager-dashboard-card">
 
@@ -1368,7 +1325,6 @@ function ManagerDashboard() {
 
 
           <div className="manager-summary">
-
 
             <div className="manager-summary-item">
 
@@ -1438,17 +1394,12 @@ function ManagerDashboard() {
 
             </button>
 
-
           </div>
 
         </div>
 
       </div>
 
-
-      {/* ======================================================
-          RECENT ACTIVITY
-      ====================================================== */}
 
       <div className="manager-dashboard-card manager-recent-card">
 
@@ -1489,63 +1440,61 @@ function ManagerDashboard() {
 
             activities
               .slice(0, 5)
-              .map(
-                (item, index) => (
+              .map((item, index) => (
 
-                  <div
-                    className="manager-task-item"
-                    key={`${item.type}-${index}`}
-                  >
+                <div
+                  className="manager-task-item"
+                  key={`${item.type}-${index}`}
+                >
 
-                    <div className="manager-task-left">
+                  <div className="manager-task-left">
 
-                      <div className="manager-task-icon">
+                    <div className="manager-task-icon">
 
-                        {item.type === "knowledge"
-                          ? <Brain size={17} />
-                          : item.type === "employee"
-                            ? <UserPlus size={17} />
-                            : item.type === "project"
-                              ? <FolderKanban size={17} />
-                              : <CheckSquare size={17} />
-                        }
-
-                      </div>
-
-
-                      <div>
-
-                        <strong>
-                          {item.title}
-                        </strong>
-
-                        <span>
-                          {item.description}
-                        </span>
-
-                      </div>
+                      {item.type === "knowledge"
+                        ? <Brain size={17} />
+                        : item.type === "employee"
+                          ? <UserPlus size={17} />
+                          : item.type === "project"
+                            ? <FolderKanban size={17} />
+                            : <CheckSquare size={17} />
+                      }
 
                     </div>
 
 
-                    <div className="manager-task-right">
+                    <div>
 
-                      <small>
+                      <strong>
+                        {item.title}
+                      </strong>
 
-                        {item.timestamp
-                          ? new Date(
-                              item.timestamp
-                            ).toLocaleDateString()
-                          : ""}
-
-                      </small>
+                      <span>
+                        {item.description}
+                      </span>
 
                     </div>
 
                   </div>
 
-                )
-              )
+
+                  <div className="manager-task-right">
+
+                    <small>
+
+                      {item.timestamp
+                        ? new Date(
+                            item.timestamp
+                          ).toLocaleDateString()
+                        : ""}
+
+                    </small>
+
+                  </div>
+
+                </div>
+
+              ))
 
           )}
 
@@ -1618,108 +1567,101 @@ function ManagerDashboard() {
 
         ) : (
 
-          projects.map(
-            (project) => (
+          projects.map((project) => (
 
-              <div
-                className="manager-project-card"
-                key={project.id}
-              >
+            <div
+              className="manager-project-card"
+              key={project.id}
+            >
 
-                <div className="manager-project-card-top">
+              <div className="manager-project-card-top">
 
-                  <div className="manager-project-large-icon">
+                <div className="manager-project-large-icon">
 
-                    <FolderKanban size={20} />
-
-                  </div>
-
-
-                  <span className="manager-status">
-                    {project.status}
-                  </span>
+                  <FolderKanban size={20} />
 
                 </div>
 
 
-                <h3>
-                  {project.name}
-                </h3>
-
-
-                <p>
-                  {project.description ||
-                    "No description provided."}
-                </p>
-
-
-                <div className="manager-project-count">
-
-                  <Users size={16} />
-
-                  {project.employee_count} employee
-                  {project.employee_count !== 1
-                    ? "s"
-                    : ""}
-
-                </div>
-
-
-                <div className="manager-project-actions">
-
-                  <button
-                    className="manager-btn manager-btn-secondary"
-                    onClick={() =>
-                      openEmployeeModal(project)
-                    }
-                  >
-
-                    <UserPlus size={14} />
-
-                    Add Employee
-
-                  </button>
-
-
-                  <button
-                    className="manager-btn manager-btn-primary"
-                    onClick={() =>
-                      openTaskModal(project)
-                    }
-                  >
-
-                    <Plus size={14} />
-
-                    Assign Task
-
-                  </button>
-
-
-                  <button
-                    className="manager-btn manager-btn-danger"
-                    onClick={() =>
-                      deleteProject(project)
-                    }
-                    disabled={submitting}
-                    title={
-                      project.employee_count > 0
-                        ? "Remove employees before deleting this project."
-                        : "Delete project"
-                    }
-                  >
-
-                    <Trash2 size={14} />
-
-                    Delete
-
-                  </button>
-
-                </div>
+                <span className="manager-status">
+                  {project.status}
+                </span>
 
               </div>
 
-            )
-          )
+
+              <h3>
+                {project.name}
+              </h3>
+
+
+              <p>
+                {project.description ||
+                  "No description provided."}
+              </p>
+
+
+              <div className="manager-project-count">
+
+                <Users size={16} />
+
+                {project.employee_count} employee
+                {project.employee_count !== 1
+                  ? "s"
+                  : ""}
+
+              </div>
+
+
+              <div className="manager-project-actions">
+
+                <button
+                  className="manager-btn manager-btn-secondary"
+                  onClick={() =>
+                    openEmployeeModal(project)
+                  }
+                >
+
+                  <UserPlus size={14} />
+
+                  Add Employee
+
+                </button>
+
+
+                <button
+                  className="manager-btn manager-btn-primary"
+                  onClick={() =>
+                    openTaskModal(project)
+                  }
+                >
+
+                  <Plus size={14} />
+
+                  Assign Task
+
+                </button>
+
+
+                <button
+                  className="manager-btn manager-btn-danger"
+                  onClick={() =>
+                    deleteProject(project)
+                  }
+                  disabled={submitting}
+                >
+
+                  <Trash2 size={14} />
+
+                  Delete
+
+                </button>
+
+              </div>
+
+            </div>
+
+          ))
 
         )}
 
@@ -1731,7 +1673,7 @@ function ManagerDashboard() {
 
 
   // ============================================================
-  // TEAM TASKS PAGE
+  // TEAM TASKS
   // ============================================================
 
   const TeamTasksPage = () => (
@@ -1797,25 +1739,11 @@ function ManagerDashboard() {
 
               <tr>
 
-                <th>
-                  Task
-                </th>
-
-                <th>
-                  Employee
-                </th>
-
-                <th>
-                  Priority
-                </th>
-
-                <th>
-                  Status
-                </th>
-
-                <th>
-                  Due Date
-                </th>
+                <th>Task</th>
+                <th>Employee</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Due Date</th>
 
               </tr>
 
@@ -1824,62 +1752,60 @@ function ManagerDashboard() {
 
             <tbody>
 
-              {tasks.map(
-                (task) => (
+              {tasks.map((task) => (
 
-                  <tr key={task.id}>
+                <tr key={task.id}>
 
-                    <td>
+                  <td>
 
-                      <strong>
-                        {task.title}
-                      </strong>
+                    <strong>
+                      {task.title}
+                    </strong>
 
-                      <span className="table-description">
-                        {task.description ||
-                          "No description"}
-                      </span>
+                    <span className="table-description">
+                      {task.description ||
+                        "No description"}
+                    </span>
 
-                    </td>
-
-
-                    <td>
-                      {task.employee_id}
-                    </td>
+                  </td>
 
 
-                    <td>
-
-                      <span className="manager-priority">
-                        {task.priority}
-                      </span>
-
-                    </td>
+                  <td>
+                    {task.employee_id}
+                  </td>
 
 
-                    <td>
+                  <td>
 
-                      <span className="manager-status">
-                        {task.status}
-                      </span>
+                    <span className="manager-priority">
+                      {task.priority}
+                    </span>
 
-                    </td>
+                  </td>
 
 
-                    <td>
+                  <td>
 
-                      {task.due_date
-                        ? new Date(
-                            task.due_date
-                          ).toLocaleString()
-                        : "No due date"}
+                    <span className="manager-status">
+                      {task.status}
+                    </span>
 
-                    </td>
+                  </td>
 
-                  </tr>
 
-                )
-              )}
+                  <td>
+
+                    {task.due_date
+                      ? new Date(
+                          task.due_date
+                        ).toLocaleString()
+                      : "No due date"}
+
+                  </td>
+
+                </tr>
+
+              ))}
 
             </tbody>
 
@@ -1895,7 +1821,7 @@ function ManagerDashboard() {
 
 
   // ============================================================
-  // TEAM KNOWLEDGE PAGE
+  // TEAM KNOWLEDGE
   // ============================================================
 
   const TeamKnowledgePage = () => (
@@ -1956,73 +1882,66 @@ function ManagerDashboard() {
 
         <div className="manager-knowledge-grid">
 
-          {teamKnowledge.map(
-            (knowledge) => (
+          {teamKnowledge.map((knowledge) => (
 
-              <div
-                className="manager-knowledge-card"
-                key={knowledge.id}
-              >
+            <div
+              className="manager-knowledge-card"
+              key={knowledge.id}
+            >
 
-                <div className="manager-knowledge-top">
+              <div className="manager-knowledge-top">
 
-                  <div className="manager-knowledge-icon">
-
-                    <Brain size={18} />
-
-                  </div>
-
-
-                  <span className="manager-knowledge-category">
-
-                    {knowledge.category}
-
-                  </span>
-
+                <div className="manager-knowledge-icon">
+                  <Brain size={18} />
                 </div>
 
-
-                <h3>
-                  {knowledge.title}
-                </h3>
-
-
-                <p>
-                  {knowledge.summary}
-                </p>
-
-
-                <div className="manager-knowledge-footer">
-
-                  <span>
-
-                    Confidence:{" "}
-
-                    {Math.round(
-                      knowledge.confidence * 100
-                    )}
-
-                    %
-
-                  </span>
-
-
-                  <span>
-
-                    {knowledge.timestamp
-                      ? new Date(
-                          knowledge.timestamp
-                        ).toLocaleDateString()
-                      : ""}
-
-                  </span>
-
-                </div>
+                <span className="manager-knowledge-category">
+                  {knowledge.category}
+                </span>
 
               </div>
 
-            )
-          )}
+
+              <h3>
+                {knowledge.title}
+              </h3>
+
+
+              <p>
+                {knowledge.summary}
+              </p>
+
+
+              <div className="manager-knowledge-footer">
+
+                <span>
+
+                  Confidence:{" "}
+
+                  {Math.round(
+                    knowledge.confidence * 100
+                  )}
+
+                  %
+
+                </span>
+
+
+                <span>
+
+                  {knowledge.timestamp
+                    ? new Date(
+                        knowledge.timestamp
+                      ).toLocaleDateString()
+                    : ""}
+
+                </span>
+
+              </div>
+
+            </div>
+
+          ))}
 
         </div>
 
@@ -2034,7 +1953,7 @@ function ManagerDashboard() {
 
 
   // ============================================================
-  // TEAM ACTIVITY PAGE
+  // ACTIVITY
   // ============================================================
 
   const TeamActivityPage = () => (
@@ -2059,9 +1978,7 @@ function ManagerDashboard() {
 
         <button
           className="manager-btn manager-btn-secondary"
-          onClick={
-            loadDashboard
-          }
+          onClick={loadDashboard}
         >
 
           <RefreshCw size={15} />
@@ -2096,56 +2013,54 @@ function ManagerDashboard() {
 
           <div className="manager-activity-list">
 
-            {activities.map(
-              (item, index) => (
+            {activities.map((item, index) => (
+
+              <div
+                className="manager-activity-item"
+                key={`${item.type}-${index}`}
+              >
 
                 <div
-                  className="manager-activity-item"
-                  key={`${item.type}-${index}`}
+                  className={`manager-activity-icon ${item.type}`}
                 >
 
-                  <div
-                    className={`manager-activity-icon ${item.type}`}
-                  >
-
-                    {item.type === "task"
-                      ? <CheckSquare size={17} />
-                      : item.type === "knowledge"
-                        ? <Brain size={17} />
-                        : item.type === "employee"
-                          ? <UserPlus size={17} />
-                          : <FolderKanban size={17} />
-                    }
-
-                  </div>
-
-
-                  <div className="manager-activity-content">
-
-                    <strong>
-                      {item.title}
-                    </strong>
-
-                    <span>
-                      {item.description}
-                    </span>
-
-                    <small>
-
-                      {item.timestamp
-                        ? new Date(
-                            item.timestamp
-                          ).toLocaleString()
-                        : "Recent"}
-
-                    </small>
-
-                  </div>
+                  {item.type === "task"
+                    ? <CheckSquare size={17} />
+                    : item.type === "knowledge"
+                      ? <Brain size={17} />
+                      : item.type === "employee"
+                        ? <UserPlus size={17} />
+                        : <FolderKanban size={17} />
+                  }
 
                 </div>
 
-              )
-            )}
+
+                <div className="manager-activity-content">
+
+                  <strong>
+                    {item.title}
+                  </strong>
+
+                  <span>
+                    {item.description}
+                  </span>
+
+                  <small>
+
+                    {item.timestamp
+                      ? new Date(
+                          item.timestamp
+                        ).toLocaleString()
+                      : "Recent"}
+
+                  </small>
+
+                </div>
+
+              </div>
+
+            ))}
 
           </div>
 
@@ -2159,7 +2074,7 @@ function ManagerDashboard() {
 
 
   // ============================================================
-  // AI ASSISTANT PAGE
+  // AI ASSISTANT
   // ============================================================
 
   const AIAssistantPage = () => (
@@ -2237,6 +2152,7 @@ function ManagerDashboard() {
             Active projects
           </button>
 
+
           <button
             type="button"
             onClick={() =>
@@ -2248,6 +2164,7 @@ function ManagerDashboard() {
             <CheckSquare size={15} />
             Pending tasks
           </button>
+
 
           <button
             type="button"
@@ -2266,69 +2183,69 @@ function ManagerDashboard() {
 
         <div className="manager-ai-conversation">
 
-          {aiHistory.length === 0 && !aiAnswer && !aiLoading && (
+          {aiHistory.length === 0 &&
+            !aiAnswer &&
+            !aiLoading && (
 
-            <div className="manager-ai-empty">
+              <div className="manager-ai-empty">
 
-              <div className="manager-ai-empty-icon">
-                <MessageCircle size={25} />
+                <div className="manager-ai-empty-icon">
+                  <MessageCircle size={25} />
+                </div>
+
+                <h3>
+                  How can I help?
+                </h3>
+
+                <p>
+                  Ask a question about your team's
+                  projects, tasks or knowledge.
+                </p>
+
               </div>
 
-              <h3>
-                How can I help?
-              </h3>
+            )}
 
-              <p>
-                Ask a question about your team's
-                projects, tasks or knowledge.
-              </p>
+
+          {aiHistory.map((item, index) => (
+
+            <div
+              className="manager-ai-history"
+              key={`${index}-${item.question}`}
+            >
+
+              <div className="manager-ai-question">
+
+                <span>
+                  You
+                </span>
+
+                <p>
+                  {item.question}
+                </p>
+
+              </div>
+
+
+              <div className="manager-ai-answer">
+
+                <div className="manager-ai-answer-label">
+
+                  <Sparkles size={14} />
+
+                  AI Assistant
+
+                </div>
+
+                <p>
+                  {item.answer}
+                </p>
+
+              </div>
 
             </div>
 
-          )}
-
-
-          {aiHistory.map(
-            (item, index) => (
-
-              <div
-                className="manager-ai-history"
-                key={`${index}-${item.question}`}
-              >
-
-                <div className="manager-ai-question">
-
-                  <span>
-                    You
-                  </span>
-
-                  <p>
-                    {item.question}
-                  </p>
-
-                </div>
-
-
-                <div className="manager-ai-answer">
-
-                  <div className="manager-ai-answer-label">
-
-                    <Sparkles size={14} />
-
-                    AI Assistant
-
-                  </div>
-
-                  <p>
-                    {item.answer}
-                  </p>
-
-                </div>
-
-              </div>
-
-            )
-          )}
+          ))}
 
 
           {aiLoading && (
@@ -2354,9 +2271,7 @@ function ManagerDashboard() {
         {aiError && (
 
           <div className="manager-ai-error">
-
             {aiError}
-
           </div>
 
         )}
@@ -2378,6 +2293,7 @@ function ManagerDashboard() {
             rows={2}
             disabled={aiLoading}
           />
+
 
           <button
             type="submit"
@@ -2406,7 +2322,7 @@ function ManagerDashboard() {
 
 
   // ============================================================
-  // PLACEHOLDER PAGE
+  // PLACEHOLDER
   // ============================================================
 
   const PlaceholderPage = ({
@@ -2418,22 +2334,16 @@ function ManagerDashboard() {
     <div className="manager-placeholder">
 
       <div className="manager-placeholder-icon">
-
         <Icon size={27} />
-
       </div>
-
 
       <h1>
         {title}
       </h1>
 
-
       <p>
-
         {description ||
           "This Manager section will be connected next."}
-
       </p>
 
     </div>
@@ -2447,85 +2357,49 @@ function ManagerDashboard() {
 
   const renderPage = () => {
 
-    if (
-      activePage === "Projects"
-    ) {
-
+    if (activePage === "Projects") {
       return <ProjectsPage />;
-
     }
 
-
-    if (
-      activePage === "Team Tasks"
-    ) {
-
+    if (activePage === "Team Tasks") {
       return <TeamTasksPage />;
-
     }
 
-
-    if (
-      activePage === "Team Knowledge"
-    ) {
-
+    if (activePage === "Team Knowledge") {
       return <TeamKnowledgePage />;
-
     }
 
-
-    if (
-      activePage === "Activity"
-    ) {
-
+    if (activePage === "Activity") {
       return <TeamActivityPage />;
-
     }
 
-
-    if (
-      activePage === "AI Assistant"
-    ) {
-
+    if (activePage === "AI Assistant") {
       return <AIAssistantPage />;
-
     }
 
-
-    if (
-      activePage === "Settings"
-    ) {
+    if (activePage === "Settings") {
 
       return (
-
         <PlaceholderPage
           title="Manager Settings"
           icon={Settings}
           description="Manager settings will be connected here."
         />
-
       );
 
     }
 
-
-    if (
-      activePage ===
-      "Help & Support"
-    ) {
+    if (activePage === "Help & Support") {
 
       return (
-
         <PlaceholderPage
           title="Help & Support"
           icon={HelpCircle}
           description="Manager help and support options will be connected here."
         />
-
       );
 
     }
-
 
     return <DashboardPage />;
 
@@ -2572,41 +2446,37 @@ function ManagerDashboard() {
 
         <nav className="manager-navigation">
 
-          {navigation.map(
-            (item) => {
+          {navigation.map((item) => {
 
-              const Icon =
-                item.icon;
+            const Icon = item.icon;
 
+            return (
 
-              return (
+              <button
+                key={item.name}
+                className={`manager-nav-item ${
+                  activePage === item.name
+                    ? "active"
+                    : ""
+                }`}
+                onClick={() =>
+                  setActivePage(
+                    item.name
+                  )
+                }
+              >
 
-                <button
-                  key={item.name}
-                  className={`manager-nav-item ${
-                    activePage === item.name
-                      ? "active"
-                      : ""
-                  }`}
-                  onClick={() =>
-                    setActivePage(
-                      item.name
-                    )
-                  }
-                >
+                <Icon size={18} />
 
-                  <Icon size={18} />
+                <span>
+                  {item.name}
+                </span>
 
-                  <span>
-                    {item.name}
-                  </span>
+              </button>
 
-                </button>
+            );
 
-              );
-
-            }
-          )}
+          })}
 
         </nav>
 
@@ -2650,6 +2520,10 @@ function ManagerDashboard() {
         </div>
 
 
+        {/* ====================================================
+            PROFILE + LOGOUT
+        ==================================================== */}
+
         <div className="manager-profile">
 
           <div className="manager-avatar">
@@ -2670,6 +2544,21 @@ function ManagerDashboard() {
           </div>
 
         </div>
+
+
+        <button
+          type="button"
+          className="manager-logout-button"
+          onClick={logout}
+        >
+
+          <LogOut size={17} />
+
+          <span>
+            Logout
+          </span>
+
+        </button>
 
 
       </aside>
@@ -2730,8 +2619,23 @@ function ManagerDashboard() {
             </div>
 
 
-          </div>
+            {/* =================================================
+                TOPBAR LOGOUT
+            ================================================= */}
 
+            <button
+              type="button"
+              className="manager-top-logout"
+              onClick={logout}
+              title="Logout"
+            >
+
+              <LogOut size={18} />
+
+            </button>
+
+
+          </div>
 
         </header>
 
@@ -2848,12 +2752,9 @@ function ManagerDashboard() {
                   }
                   onChange={(event) =>
                     setProjectForm({
-
                       ...projectForm,
-
                       name:
                         event.target.value,
-
                     })
                   }
                   placeholder="AI Loss Prevention"
@@ -2873,12 +2774,9 @@ function ManagerDashboard() {
                   }
                   onChange={(event) =>
                     setProjectForm({
-
                       ...projectForm,
-
                       description:
                         event.target.value,
-
                     })
                   }
                   placeholder="Project description..."
@@ -2970,10 +2868,8 @@ function ManagerDashboard() {
                   }
                   onChange={(event) =>
                     setEmployeeForm({
-
                       employee_id:
                         event.target.value,
-
                     })
                   }
                   placeholder="EMP001"
@@ -3055,7 +2951,6 @@ function ManagerDashboard() {
               }
             >
 
-
               <label>
 
                 Project
@@ -3070,15 +2965,11 @@ function ManagerDashboard() {
                       event.target.value;
 
                     setTaskForm({
-
                       ...taskForm,
-
                       project_id:
                         projectId,
-
                       employee_id:
                         "",
-
                     });
 
                     if (!projectId) {
@@ -3088,19 +2979,23 @@ function ManagerDashboard() {
                     try {
 
                       const response =
-                        await fetch(
+                        await authFetch(
                           `${API_BASE}/manager/projects/${projectId}?manager_id=${MANAGER_ID}`
                         );
+
 
                       if (!response.ok) {
                         return;
                       }
 
+
                       const data =
                         await response.json();
 
+
                       const employees =
                         data?.project?.employees || [];
+
 
                       if (employees.length === 1) {
 
@@ -3110,7 +3005,8 @@ function ManagerDashboard() {
                             project_id:
                               projectId,
                             employee_id:
-                              employees[0].employee_id || "",
+                              employees[0].employee_id ||
+                              "",
                           })
                         );
 
@@ -3134,20 +3030,18 @@ function ManagerDashboard() {
                   </option>
 
 
-                  {projects.map(
-                    (project) => (
+                  {projects.map((project) => (
 
-                      <option
-                        key={project.id}
-                        value={project.id}
-                      >
+                    <option
+                      key={project.id}
+                      value={project.id}
+                    >
 
-                        {project.name}
+                      {project.name}
 
-                      </option>
+                    </option>
 
-                    )
-                  )}
+                  ))}
 
                 </select>
 
@@ -3164,12 +3058,9 @@ function ManagerDashboard() {
                   }
                   onChange={(event) =>
                     setTaskForm({
-
                       ...taskForm,
-
                       employee_id:
                         event.target.value,
-
                     })
                   }
                   placeholder="EMP001"
@@ -3177,9 +3068,13 @@ function ManagerDashboard() {
                 />
 
                 {taskForm.employee_id && (
+
                   <small className="manager-form-hint">
+
                     Employee automatically selected from this project.
+
                   </small>
+
                 )}
 
               </label>
@@ -3195,12 +3090,9 @@ function ManagerDashboard() {
                   }
                   onChange={(event) =>
                     setTaskForm({
-
                       ...taskForm,
-
                       title:
                         event.target.value,
-
                     })
                   }
                   placeholder="Complete RAG evaluation"
@@ -3220,12 +3112,9 @@ function ManagerDashboard() {
                   }
                   onChange={(event) =>
                     setTaskForm({
-
                       ...taskForm,
-
                       description:
                         event.target.value,
-
                     })
                   }
                   placeholder="Describe the task..."
@@ -3235,7 +3124,6 @@ function ManagerDashboard() {
 
 
               <div className="manager-form-row">
-
 
                 <label>
 
@@ -3247,12 +3135,9 @@ function ManagerDashboard() {
                     }
                     onChange={(event) =>
                       setTaskForm({
-
                         ...taskForm,
-
                         priority:
                           event.target.value,
-
                       })
                     }
                   >
@@ -3285,18 +3170,14 @@ function ManagerDashboard() {
                     }
                     onChange={(event) =>
                       setTaskForm({
-
                         ...taskForm,
-
                         due_date:
                           event.target.value,
-
                       })
                     }
                   />
 
                 </label>
-
 
               </div>
 

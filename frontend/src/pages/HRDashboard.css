@@ -1463,3 +1463,44 @@ button {
     min-width: 80px;
   }
 }
+.hr-logout-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  margin-top: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.2s ease;
+}
+
+.hr-logout-button:hover {
+  color: #dc2626;
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.hr-top-logout {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e5e7eb;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #6b7280;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.hr-top-logout:hover {
+  color: #dc2626;
+  background: #fef2f2;
+  border-color: #fecaca;
+}

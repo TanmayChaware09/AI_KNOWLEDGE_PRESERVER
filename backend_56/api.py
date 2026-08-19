@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from backend_3_4.models import (
     Knowledge,
@@ -13,7 +13,8 @@ from fastapi import (
     File,
     Form,
     UploadFile,
-    HTTPException
+    HTTPException,
+    Depends
 )
 
 from fastapi.middleware.cors import CORSMiddleware
@@ -23,6 +24,9 @@ from pydantic import BaseModel
 import hashlib
 import hmac
 import secrets
+
+from jose import jwt, JWTError
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 # ============================================================
 # AGENT 5 : ANSWER AGENT
@@ -73,6 +77,93 @@ from backend_3_4.services.hashing_service import HashingService
 # ============================================================
 
 from backend_3_4.services.postgres_service import PostgresService
+
+
+# ============================================================
+# JWT CONFIGURATION
+# ============================================================
+
+# Development secret only.
+# In production, load this from an environment variable / secret manager.
+JWT_SECRET_KEY = "change-this-in-production"
+JWT_ALGORITHM = "HS256"
+JWT_EXPIRE_MINUTES = 60
+
+bearer_scheme = HTTPBearer(auto_error=False)
+
+
+def create_access_token(user_id: str, role: str) -> str:
+    expire = datetime.utcnow() + timedelta(
+        minutes=JWT_EXPIRE_MINUTES
+    )
+
+    payload = {
+        "sub": user_id,
+        "role": role,
+        "exp": expire
+    }
+
+    return jwt.encode(
+        payload,
+        JWT_SECRET_KEY,
+        algorithm=JWT_ALGORITHM
+    )
+
+
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(
+        bearer_scheme
+    )
+):
+    if not credentials:
+        raise HTTPException(
+            status_code=401,
+            detail="Authentication required."
+        )
+
+    token = credentials.credentials
+
+    try:
+        payload = jwt.decode(
+            token,
+            JWT_SECRET_KEY,
+            algorithms=[JWT_ALGORITHM]
+        )
+
+        user_id = payload.get("sub")
+        role = payload.get("role")
+
+        if not user_id or not role:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid authentication token."
+            )
+
+        return {
+            "id": user_id,
+            "role": role
+        }
+
+    except JWTError:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired authentication token."
+        )
+
+
+def require_role(required_role: str):
+    def role_checker(
+        current_user=Depends(get_current_user)
+    ):
+        if current_user["role"] != required_role:
+            raise HTTPException(
+                status_code=403,
+                detail="You are not authorized for this role."
+            )
+
+        return current_user
+
+    return role_checker
 
 
 # ============================================================
@@ -236,9 +327,17 @@ def login(request: LoginRequest):
                 detail="Invalid ID, password or role."
             )
 
+        access_token = create_access_token(
+            user_id=user.user_id,
+            role=user.role
+        )
+
         return {
             "success": True,
             "message": "Login successful.",
+            "access_token": access_token,
+            "token_type": "bearer",
+            "expires_in": JWT_EXPIRE_MINUTES * 60,
             "user": {
                 "id": user.user_id,
                 "role": user.role,
@@ -261,6 +360,52 @@ def login(request: LoginRequest):
 
     finally:
         session.close()
+
+# ============================================================
+# CURRENT AUTHENTICATED USER
+# ============================================================
+
+@app.get("/auth/me")
+def get_me(
+    current_user=Depends(get_current_user)
+):
+    session = PostgresService().get_session()
+
+    try:
+        user = (
+            session.query(User)
+            .filter(
+                User.user_id == current_user["id"],
+                User.role == current_user["role"]
+            )
+            .first()
+        )
+
+        if not user:
+            raise HTTPException(
+                status_code=401,
+                detail="User no longer exists."
+            )
+
+        if user.is_active != "true":
+            raise HTTPException(
+                status_code=403,
+                detail="This account is inactive."
+            )
+
+        return {
+            "success": True,
+            "user": {
+                "id": user.user_id,
+                "role": user.role,
+                "name": user.display_name,
+                "email": user.email
+            }
+        }
+
+    finally:
+        session.close()
+
 
 # ============================================================
 # CREATE DEVELOPMENT USERS
@@ -379,7 +524,8 @@ def health():
 
 @app.post("/ask")
 def ask(
-    request: AskRequest
+    request: AskRequest,
+    current_user=Depends(get_current_user)
 ):
 
     question = request.question.strip()
@@ -390,8 +536,31 @@ def ask(
             "answer": "No question provided."
         }
 
+    # ========================================================
+    # ROLE IS AUTOMATICALLY READ FROM JWT
+    #
+    # The frontend/user does NOT send the role.
+    # The authenticated JWT already contains:
+    #   sub  -> user ID
+    #   role -> employee / manager / hr
+    # ========================================================
+
+    user_id = current_user["id"]
+    role = current_user["role"]
+
+    # ========================================================
+    # ROLE-AWARE RAG
+    #
+    # The Answer Agent will use:
+    #   question + authenticated role + user ID
+    #
+    # to produce a role-specific answer.
+    # ========================================================
+
     answer = generate_answer(
-        question
+        query=question,
+        role=role,
+        user_id=user_id
     )
 
     return {

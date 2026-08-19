@@ -1,11 +1,12 @@
 import re
+from datetime import datetime, timezone
 
 import chromadb
 
 from backend_56.services.embedding import generate_embedding
 from backend_56.shared.config import (
     CHROMA_PATH,
-    COLLECTION_NAME
+    COLLECTION_NAME,
 )
 
 
@@ -23,17 +24,87 @@ collection = client.get_or_create_collection(
 
 
 # ============================================================
-# SOURCE ALIASES
+# INTENT KEYWORDS
 # ============================================================
 
-SOURCE_ALIASES = {
-    "slack": "slack",
-    "email": "gmail",
-    "gmail": "gmail",
-    "github": "github",
-    "git hub": "github",
-    "meeting": "meeting",
-    "meetings": "meeting"
+INTENT_KEYWORDS = {
+    "recent_updates": {
+        "recent",
+        "recently",
+        "latest",
+        "update",
+        "updates",
+        "updated",
+        "changed",
+        "changes",
+        "activity",
+        "happened",
+        "new",
+    },
+
+    "pending_work": {
+        "pending",
+        "remaining",
+        "unfinished",
+        "incomplete",
+        "todo",
+        "blocker",
+        "blocked",
+        "unresolved",
+        "needs",
+        "complete",
+        "completion",
+        "task",
+        "tasks",
+        "work",
+    },
+
+    "meeting_summary": {
+        "meeting",
+        "meetings",
+        "discussion",
+        "discussed",
+        "summary",
+        "summarize",
+        "agenda",
+        "minutes",
+        "outcome",
+        "outcomes",
+    },
+
+    "project_progress": {
+        "project",
+        "progress",
+        "status",
+        "completed",
+        "completion",
+        "development",
+        "work",
+    },
+
+    "decisions": {
+        "decision",
+        "decisions",
+        "decided",
+        "chosen",
+        "choice",
+        "architecture",
+        "retained",
+        "selected",
+    },
+
+    "blockers": {
+        "blocker",
+        "blockers",
+        "blocked",
+        "issue",
+        "issues",
+        "problem",
+        "problems",
+        "dependency",
+        "dependencies",
+        "unresolved",
+    },
 }
 
 
@@ -70,17 +141,32 @@ STOP_WORDS = {
     "currently",
     "please",
     "tell",
-    "me"
+    "me",
+    "show",
+    "give",
+    "can",
+    "you",
+    "could",
+    "would",
+    "should",
+    "have",
+    "has",
+    "been",
+    "it",
+    "this",
+    "that",
+    "we",
+    "our",
+    "their",
+    "they",
 }
 
 
 # ============================================================
-# NORMALIZE TEXT
+# TEXT NORMALIZATION
 # ============================================================
 
-def normalize_text(
-    text: str
-) -> str:
+def normalize_text(text: str) -> str:
 
     return re.sub(
         r"[^a-z0-9]+",
@@ -90,33 +176,101 @@ def normalize_text(
 
 
 # ============================================================
-# SOURCE DETECTION
+# INTENT DETECTION
 # ============================================================
 
-def detect_source(
-    query: str
-):
+def detect_intent(query: str) -> str:
 
-    normalized = normalize_text(
-        query
+    text = normalize_text(query)
+
+    # --------------------------------------------------------
+    # MEETING
+    # --------------------------------------------------------
+
+    if (
+        "last meeting" in text
+        or "latest meeting" in text
+        or "recent meeting" in text
+        or "meeting summary" in text
+        or "summarize meeting" in text
+        or "what was discussed" in text
+    ):
+        return "meeting_summary"
+
+
+    # --------------------------------------------------------
+    # PENDING WORK
+    # --------------------------------------------------------
+
+    if (
+        "what is pending" in text
+        or "whats pending" in text
+        or "pending work" in text
+        or "pending tasks" in text
+        or "remaining work" in text
+        or "what remains" in text
+        or "what needs to be done" in text
+        or "unfinished work" in text
+        or "incomplete work" in text
+    ):
+        return "pending_work"
+
+
+    # --------------------------------------------------------
+    # RECENT UPDATES
+    # --------------------------------------------------------
+
+    if (
+        "recent updates" in text
+        or "recent update" in text
+        or "latest updates" in text
+        or "latest update" in text
+        or "what happened recently" in text
+        or "recent changes" in text
+        or "recent activity" in text
+        or "what happened lately" in text
+    ):
+        return "recent_updates"
+
+
+    # --------------------------------------------------------
+    # KEYWORD SCORING
+    # --------------------------------------------------------
+
+    words = set(
+        text.split()
     )
 
-    for phrase, source in SOURCE_ALIASES.items():
+    scores = {}
 
-        if phrase in normalized:
+    for intent, keywords in INTENT_KEYWORDS.items():
 
-            return source
+        scores[intent] = len(
+            words.intersection(
+                keywords
+            )
+        )
 
-    return None
+
+    best_intent = max(
+        scores,
+        key=scores.get
+    )
+
+
+    if scores[best_intent] > 0:
+
+        return best_intent
+
+
+    return "general"
 
 
 # ============================================================
 # KEYWORD EXTRACTION
 # ============================================================
 
-def extract_keywords(
-    text: str
-):
+def extract_keywords(text: str):
 
     words = normalize_text(
         text
@@ -128,7 +282,6 @@ def extract_keywords(
         if (
             len(word) >= 3
             and word not in STOP_WORDS
-            and word not in SOURCE_ALIASES
         )
     }
 
@@ -142,21 +295,23 @@ def keyword_score(
     document
 ):
 
+    if not query_keywords:
+        return 0.0
+
+
     document_words = set(
         normalize_text(
             document
         ).split()
     )
 
-    if not query_keywords:
-
-        return 0.0
 
     matches = (
         query_keywords
         &
         document_words
     )
+
 
     return (
         len(matches)
@@ -166,107 +321,140 @@ def keyword_score(
 
 
 # ============================================================
-# GET ALL DOCUMENTS FROM SOURCE
+# INTENT SCORE
 # ============================================================
 
-def get_source_documents(
-    source: str
+def intent_score(
+    intent,
+    document
 ):
+
+    if intent == "general":
+        return 0.0
+
+
+    document_words = set(
+        normalize_text(
+            document
+        ).split()
+    )
+
+
+    intent_words = INTENT_KEYWORDS.get(
+        intent,
+        set()
+    )
+
+
+    if not intent_words:
+        return 0.0
+
+
+    matches = (
+        document_words
+        &
+        intent_words
+    )
+
+
+    return (
+        len(matches)
+        /
+        len(intent_words)
+    )
+
+
+# ============================================================
+# RECENCY SCORE
+# ============================================================
+
+def recency_score(
+    timestamp
+):
+
+    if not timestamp:
+        return 0.0
+
 
     try:
 
-        results = collection.get(
+        timestamp_text = str(
+            timestamp
+        ).strip()
 
-            where={
-                "source": source
-            },
 
-            include=[
-                "documents",
-                "metadatas"
-            ]
+        # ----------------------------------------------------
+        # Handle timestamps ending with Z
+        # ----------------------------------------------------
 
-        )
+        if timestamp_text.endswith(
+            "Z"
+        ):
 
-        return list(
-            zip(
-                results.get(
-                    "documents",
-                    []
-                ),
-                results.get(
-                    "metadatas",
-                    []
-                )
+            timestamp_text = (
+                timestamp_text[:-1]
+                + "+00:00"
             )
+
+
+        dt = datetime.fromisoformat(
+            timestamp_text
         )
 
-    except Exception as e:
 
-        print(
-            f"Source retrieval error: {e}"
-        )
+        # ----------------------------------------------------
+        # Make timezone aware
+        # ----------------------------------------------------
 
-        return []
+        if dt.tzinfo is None:
 
-
-# ============================================================
-# SEMANTIC SEARCH
-# ============================================================
-
-def semantic_search(
-    query_embedding,
-    n_results: int
-):
-
-    try:
-
-        results = collection.query(
-
-            query_embeddings=[
-                query_embedding
-            ],
-
-            n_results=n_results,
-
-            include=[
-                "documents",
-                "metadatas",
-                "distances"
-            ]
-
-        )
-
-        documents = results.get(
-            "documents",
-            [[]]
-        )[0]
-
-        metadatas = results.get(
-            "metadatas",
-            [[]]
-        )[0]
-
-        distances = results.get(
-            "distances",
-            [[]]
-        )[0]
-
-        return list(
-            zip(
-                documents,
-                metadatas,
-                distances
+            dt = dt.replace(
+                tzinfo=timezone.utc
             )
+
+
+        now = datetime.now(
+            timezone.utc
         )
 
-    except Exception as e:
 
-        print(
-            f"Semantic retrieval error: {e}"
+        age_hours = (
+            now - dt
+        ).total_seconds() / 3600
+
+
+        # ----------------------------------------------------
+        # Protect against future timestamps
+        # ----------------------------------------------------
+
+        age_hours = max(
+            0.0,
+            age_hours
         )
 
-        return []
+
+        # ----------------------------------------------------
+        # Recency decay
+        #
+        # 0 hours  -> 1.00
+        # 24 hours -> ~0.50
+        # 48 hours -> ~0.33
+        # 72 hours -> ~0.25
+        #
+        # This gives recent knowledge a stronger ranking
+        # without completely ignoring older knowledge.
+        # ----------------------------------------------------
+
+        return 1.0 / (
+            1.0
+            +
+            age_hours / 24.0
+        )
+
+
+    except Exception:
+
+        return 0.0
 
 
 # ============================================================
@@ -289,7 +477,7 @@ def retrieve(
         # QUERY ANALYSIS
         # ====================================================
 
-        requested_source = detect_source(
+        intent = detect_intent(
             query
         )
 
@@ -299,7 +487,15 @@ def retrieve(
 
 
         print(
-            "\nQuery analysis:"
+            "\n================================================"
+        )
+
+        print(
+            "RAG RETRIEVAL"
+        )
+
+        print(
+            "================================================"
         )
 
         print(
@@ -307,8 +503,7 @@ def retrieve(
         )
 
         print(
-            f"Detected source : "
-            f"{requested_source or 'none'}"
+            f"Detected intent: {intent}"
         )
 
         print(
@@ -318,7 +513,28 @@ def retrieve(
 
 
         # ====================================================
-        # GENERATE QUERY EMBEDDING
+        # COLLECTION CHECK
+        # ====================================================
+
+        total_records = collection.count()
+
+
+        print(
+            f"Knowledge count: {total_records}"
+        )
+
+
+        if total_records == 0:
+
+            print(
+                "Knowledge collection is empty."
+            )
+
+            return []
+
+
+        # ====================================================
+        # QUERY EMBEDDING
         # ====================================================
 
         query_embedding = generate_embedding(
@@ -330,201 +546,217 @@ def retrieve(
         # SEMANTIC SEARCH
         # ====================================================
 
-        total_records = collection.count()
-
         candidate_count = min(
             max(
-                20,
-                n_results * 10
+                10,
+                n_results * 5
             ),
             total_records
         )
 
 
-        semantic_results = semantic_search(
-            query_embedding,
-            candidate_count
+        results = collection.query(
+
+            query_embeddings=[
+                query_embedding
+            ],
+
+            n_results=candidate_count,
+
+            include=[
+                "documents",
+                "metadatas",
+                "distances",
+            ],
+        )
+
+
+        documents = (
+            results.get(
+                "documents",
+                [[]]
+            )[0]
+        )
+
+
+        metadatas = (
+            results.get(
+                "metadatas",
+                [[]]
+            )[0]
+        )
+
+
+        distances = (
+            results.get(
+                "distances",
+                [[]]
+            )[0]
+        )
+
+
+        print(
+            f"Semantic candidates: "
+            f"{len(documents)}"
         )
 
 
         # ====================================================
-        # CANDIDATE STORAGE
-        # ====================================================
-
-        candidates = {}
-
-
-        # ====================================================
-        # ADD SEMANTIC CANDIDATES
-        # ====================================================
-
-        for (
-            document,
-            metadata,
-            distance
-        ) in semantic_results:
-
-            if not document:
-
-                continue
-
-
-            metadata = (
-                metadata
-                or {}
-            )
-
-
-            source = str(
-                metadata.get(
-                    "source",
-                    ""
-                )
-            ).lower().strip()
-
-
-            # ------------------------------------------------
-            # HARD SOURCE FILTER
-            # ------------------------------------------------
-
-            if (
-                requested_source
-                and source != requested_source
-            ):
-
-                continue
-
-
-            key = (
-                document,
-                str(metadata)
-            )
-
-
-            candidates[key] = {
-
-                "document": document,
-
-                "metadata": metadata,
-
-                "distance": float(
-                    distance
-                ),
-
-                "semantic_score": max(
-                    0.0,
-                    1.0 - float(
-                        distance
-                    )
-                )
-
-            }
-
-
-        # ====================================================
-        # ADD ALL DOCUMENTS FROM REQUESTED SOURCE
-        # ====================================================
-
-        if requested_source:
-
-            source_documents = get_source_documents(
-                requested_source
-            )
-
-
-            print(
-                f"Source documents found: "
-                f"{len(source_documents)}"
-            )
-
-
-            for (
-                document,
-                metadata
-            ) in source_documents:
-
-                if not document:
-
-                    continue
-
-
-                metadata = (
-                    metadata
-                    or {}
-                )
-
-
-                key = (
-                    document,
-                    str(metadata)
-                )
-
-
-                if key not in candidates:
-
-                    candidates[key] = {
-
-                        "document": document,
-
-                        "metadata": metadata,
-
-                        "distance": 1.0,
-
-                        "semantic_score": 0.0
-
-                    }
-
-
-        # ====================================================
-        # HYBRID RANKING
+        # RANKING
         # ====================================================
 
         ranked = []
 
 
-        for candidate in candidates.values():
+        for index, document in enumerate(
+            documents
+        ):
 
-            document = candidate[
-                "document"
-            ]
-
-            semantic_score = candidate[
-                "semantic_score"
-            ]
+            if not document:
+                continue
 
 
-            lexical_score = keyword_score(
+            metadata = (
+                metadatas[index]
+                if index < len(metadatas)
+                else {}
+            )
+
+
+            distance = (
+                distances[index]
+                if index < len(distances)
+                else 1.0
+            )
+
+
+            # ------------------------------------------------
+            # Semantic score
+            # ------------------------------------------------
+
+            semantic = max(
+                0.0,
+                1.0 - float(distance)
+            )
+
+
+            # ------------------------------------------------
+            # Keyword score
+            # ------------------------------------------------
+
+            lexical = keyword_score(
                 query_keywords,
                 document
             )
 
 
-            final_score = (
+            # ------------------------------------------------
+            # Intent score
+            # ------------------------------------------------
 
-                0.45
-                * semantic_score
-
-                +
-
-                0.55
-                * lexical_score
-
+            intent_match = intent_score(
+                intent,
+                document
             )
 
 
-            candidate[
-                "keyword_score"
-            ] = lexical_score
+            # ------------------------------------------------
+            # Timestamp
+            # ------------------------------------------------
 
-
-            candidate[
-                "final_score"
-            ] = final_score
-
-
-            ranked.append(
-                candidate
+            timestamp = metadata.get(
+                "timestamp"
             )
+
+
+            # ------------------------------------------------
+            # Recency
+            # ------------------------------------------------
+
+            recent = recency_score(
+                timestamp
+            )
+
+
+            # ------------------------------------------------
+            # Final score
+            #
+            # NORMAL:
+            # semantic + keyword + intent
+            #
+            # RECENT/PENDING:
+            # semantic + keyword + intent + recency
+            #
+            # Recency is NOT allowed to make an unrelated
+            # document relevant by itself.
+            # ------------------------------------------------
+
+            if intent in {
+                "recent_updates",
+                "pending_work",
+            }:
+
+                final_score = (
+
+                    0.50
+                    * semantic
+
+                    +
+
+                    0.25
+                    * lexical
+
+                    +
+
+                    0.10
+                    * intent_match
+
+                    +
+
+                    0.15
+                    * recent
+
+                )
+
+            else:
+
+                final_score = (
+
+                    0.65
+                    * semantic
+
+                    +
+
+                    0.25
+                    * lexical
+
+                    +
+
+                    0.10
+                    * intent_match
+
+                )
+
+
+            ranked.append({
+
+                "document": document,
+
+                "metadata": metadata,
+
+                "distance": float(distance),
+
+                "semantic_score": semantic,
+
+                "keyword_score": lexical,
+
+                "intent_score": intent_match,
+
+                "recency_score": recent,
+
+                "final_score": final_score,
+
+            })
 
 
         # ====================================================
@@ -532,17 +764,14 @@ def retrieve(
         # ====================================================
 
         ranked.sort(
-
             key=lambda item:
                 item["final_score"],
-
             reverse=True
-
         )
 
 
         # ====================================================
-        # DEBUG OUTPUT
+        # DEBUG
         # ====================================================
 
         print(
@@ -550,7 +779,7 @@ def retrieve(
         )
 
 
-        for candidate in ranked:
+        for candidate in ranked[:10]:
 
             print(
 
@@ -560,11 +789,14 @@ def retrieve(
                 f"Semantic: "
                 f"{candidate['semantic_score']:.4f} | "
 
-                f"Keywords: "
+                f"Keyword: "
                 f"{candidate['keyword_score']:.4f} | "
 
-                f"Source: "
-                f"{candidate['metadata'].get('source', 'unknown')} | "
+                f"Intent: "
+                f"{candidate['intent_score']:.4f} | "
+
+                f"Recency: "
+                f"{candidate['recency_score']:.4f} | "
 
                 f"{candidate['document'][:120]}"
 
@@ -572,77 +804,144 @@ def retrieve(
 
 
         # ====================================================
-        # RELEVANCE FILTER
+        # RELEVANCE GATE
+        # ====================================================
+        #
+        # IMPORTANT:
+        #
+        # Recency alone can NEVER make an unrelated document
+        # relevant.
+        #
+        # This protects negative RAG.
+        #
+        # ----------------------------------------------------
+        #
+        # Strong semantic:
+        #     semantic >= 0.45
+        #
+        # OR meaningful keyword overlap:
+        #     keyword >= 0.20
+        #
+        # For recent/pending queries we also allow a moderately
+        # relevant document when it has both:
+        #
+        #     semantic >= 0.20
+        #     AND
+        #     (keyword >= 0.20 OR intent >= 0.09)
+        #
         # ====================================================
 
-        retrieved = []
+        relevant_items = []
 
 
-        if ranked:
-
-            best_score = (
-                ranked[0]["final_score"]
-            )
-
-        else:
-
-            best_score = 0.0
-
-
-        for candidate in ranked:
-
-            score = (
-                candidate["final_score"]
-            )
-
-            keyword = (
-                candidate["keyword_score"]
-            )
+        for item in ranked:
 
             semantic = (
-                candidate["semantic_score"]
+                item["semantic_score"]
+            )
+
+            lexical = (
+                item["keyword_score"]
+            )
+
+            intent_match = (
+                item["intent_score"]
             )
 
 
             # ------------------------------------------------
-            # STRONG MATCH MODE
-            # ------------------------------------------------
-            #
-            # If the best document is very strong,
-            # only keep documents reasonably close to it.
-            #
-            # This prevents generic documents from being
-            # passed to the Answer Agent.
+            # Strong semantic match
             # ------------------------------------------------
 
-            if best_score >= 0.75:
+            if semantic >= 0.45:
 
-                relevant = (
-                    score
-                    >=
-                    best_score * 0.75
+                relevant_items.append(
+                    item
                 )
-
-            else:
-
-                relevant = (
-                    keyword >= 0.50
-                    and
-                    score >= best_score * 0.70
-                )
-
-
-            if not relevant:
 
                 continue
 
 
-            retrieved.append(
-                candidate["document"]
+            # ------------------------------------------------
+            # Strong keyword match
+            # ------------------------------------------------
+
+            if lexical >= 0.20:
+
+                relevant_items.append(
+                    item
+                )
+
+                continue
+
+
+            # ------------------------------------------------
+            # Moderate project/update relevance
+            #
+            # Only for the intents where recency matters.
+            # ------------------------------------------------
+
+            if intent in {
+                "recent_updates",
+                "pending_work",
+            }:
+
+                if (
+                    semantic >= 0.20
+                    and
+                    (
+                        lexical >= 0.20
+                        or
+                        intent_match >= 0.09
+                    )
+                ):
+
+                    relevant_items.append(
+                        item
+                    )
+
+
+        # ====================================================
+        # REMOVE DUPLICATES
+        # ====================================================
+
+        unique_documents = []
+
+        seen = set()
+
+
+        for item in relevant_items:
+
+            document = item[
+                "document"
+            ]
+
+
+            normalized_document = (
+                normalize_text(
+                    document
+                )
             )
 
 
-            if len(retrieved) >= n_results:
+            if normalized_document in seen:
+
+                continue
+
+
+            seen.add(
+                normalized_document
+            )
+
+
+            unique_documents.append(
+                document
+            )
+
+
+            if len(
+                unique_documents
+            ) >= n_results:
 
                 break
 
@@ -652,25 +951,34 @@ def retrieve(
         # ====================================================
 
         print(
-            f"\nRetrieved documents: "
-            f"{len(retrieved)}"
+            f"\nRelevant documents: "
+            f"{len(unique_documents)}"
+        )
+
+        print(
+            f"Retrieved documents: "
+            f"{len(unique_documents)}"
+        )
+
+        print(
+            "================================================\n"
         )
 
 
-        return retrieved
+        return unique_documents
 
 
     except Exception as e:
 
         print(
-            f"Retrieval Error: {e}"
+            f"Semantic retrieval error: {e}"
         )
 
         return []
 
 
 # ============================================================
-# TEST
+# DIRECT TEST
 # ============================================================
 
 if __name__ == "__main__":
@@ -691,11 +999,19 @@ if __name__ == "__main__":
     )
 
 
-    for i, result in enumerate(
-        results,
-        start=1
-    ):
+    if not results:
 
         print(
-            f"\n{i}. {result}"
+            "No sufficient knowledge found."
         )
+
+    else:
+
+        for index, result in enumerate(
+            results,
+            start=1
+        ):
+
+            print(
+                f"\n{index}. {result}"
+            )

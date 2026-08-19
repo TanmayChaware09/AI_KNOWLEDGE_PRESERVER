@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { logout } from "../auth/auth";
 
 import {
   Home,
@@ -25,9 +26,7 @@ import {
 
 import "./EmployeeDashboard.css";
 
-
 function EmployeeDashboard() {
-
   // ============================================================
   // TIME-BASED GREETING
   // ============================================================
@@ -41,81 +40,59 @@ function EmployeeDashboard() {
         ? "Good Afternoon"
         : "Good Evening";
 
-
   // ============================================================
   // AI ASSISTANT STATE
   // ============================================================
 
   const [showAssistant, setShowAssistant] = useState(false);
-
   const [question, setQuestion] = useState("");
-
   const [answer, setAnswer] = useState("");
-
   const [loading, setLoading] = useState(false);
-
 
   // ============================================================
   // MY KNOWLEDGE STATE
   // ============================================================
 
   const [activePage, setActivePage] = useState("dashboard");
-
   const [knowledge, setKnowledge] = useState([]);
-
   const [knowledgeLoading, setKnowledgeLoading] = useState(false);
-
   const [knowledgeError, setKnowledgeError] = useState("");
-
   const [knowledgeSearch, setKnowledgeSearch] = useState("");
-
   const [knowledgeCategory, setKnowledgeCategory] = useState("All");
-
 
   // ============================================================
   // UPLOAD KNOWLEDGE STATE
   // ============================================================
 
   const [selectedFile, setSelectedFile] = useState(null);
-
   const [uploadingKnowledge, setUploadingKnowledge] = useState(false);
-
   const [uploadMessage, setUploadMessage] = useState("");
-
   const [uploadError, setUploadError] = useState("");
-
 
   // ============================================================
   // MY TASKS STATE
   // ============================================================
 
   const [tasks, setTasks] = useState([]);
-
   const [tasksLoading, setTasksLoading] = useState(false);
-
   const [tasksError, setTasksError] = useState("");
-
 
   // ============================================================
   // SETTINGS STATE
   // ============================================================
 
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-
   const [aiSuggestionsEnabled, setAiSuggestionsEnabled] = useState(true);
-
 
   // ============================================================
   // LOAD MY KNOWLEDGE
   // ============================================================
 
   const loadKnowledge = async () => {
-
     setKnowledgeLoading(true);
     setKnowledgeError("");
 
     try {
-
       const response = await fetch(
         "http://127.0.0.1:8000/knowledge"
       );
@@ -131,28 +108,18 @@ function EmployeeDashboard() {
           ? data.knowledge
           : []
       );
-
     } catch (error) {
-
-      console.error(
-        "My Knowledge Error:",
-        error
-      );
+      console.error("My Knowledge Error:", error);
 
       setKnowledgeError(
         "Unable to load your knowledge."
       );
-
     } finally {
-
       setKnowledgeLoading(false);
-
     }
   };
 
-
   useEffect(() => {
-
     if (activePage === "knowledge") {
       loadKnowledge();
     }
@@ -165,9 +132,7 @@ function EmployeeDashboard() {
       loadKnowledge();
       loadTasks();
     }
-
   }, [activePage]);
-
 
   // ============================================================
   // KNOWLEDGE FILTERING
@@ -184,7 +149,6 @@ function EmployeeDashboard() {
 
   const filteredKnowledge = knowledge.filter(
     (item) => {
-
       const searchText =
         knowledgeSearch
           .trim()
@@ -207,22 +171,18 @@ function EmployeeDashboard() {
         matchesSearch &&
         matchesCategory
       );
-
     }
   );
-
 
   // ============================================================
   // LOAD MY TASKS
   // ============================================================
 
   const loadTasks = async () => {
-
     setTasksLoading(true);
     setTasksError("");
 
     try {
-
       const response = await fetch(
         "http://127.0.0.1:8000/tasks?employee_id=EMP001"
       );
@@ -238,34 +198,23 @@ function EmployeeDashboard() {
           ? data.tasks
           : []
       );
-
     } catch (error) {
-
-      console.error(
-        "My Tasks Error:",
-        error
-      );
+      console.error("My Tasks Error:", error);
 
       setTasksError(
         "Unable to load your tasks."
       );
-
     } finally {
-
       setTasksLoading(false);
-
     }
   };
-
 
   // ============================================================
   // UPLOAD KNOWLEDGE
   // ============================================================
 
   const uploadKnowledge = async () => {
-
     if (!selectedFile) {
-
       setUploadError(
         "Please select a .txt file first."
       );
@@ -273,14 +222,11 @@ function EmployeeDashboard() {
       return;
     }
 
-
     setUploadingKnowledge(true);
     setUploadMessage("");
     setUploadError("");
 
-
     try {
-
       const formData = new FormData();
 
       formData.append(
@@ -288,8 +234,6 @@ function EmployeeDashboard() {
         selectedFile
       );
 
-      // Temporary development identity.
-      // Later this will come from authenticated RBAC login.
       formData.append(
         "employee_id",
         "EMP001"
@@ -305,7 +249,6 @@ function EmployeeDashboard() {
         "Engineering"
       );
 
-
       const response = await fetch(
         "http://127.0.0.1:8000/upload",
         {
@@ -314,29 +257,21 @@ function EmployeeDashboard() {
         }
       );
 
-
       const data = await response.json();
 
-
       if (!response.ok) {
-
         throw new Error(
           data.detail ||
           "Upload failed."
         );
-
       }
 
-
       if (!data.success) {
-
         throw new Error(
           data.message ||
           "No knowledge was stored."
         );
-
       }
-
 
       setUploadMessage(
         `${data.stored} knowledge card${
@@ -344,16 +279,10 @@ function EmployeeDashboard() {
         } uploaded successfully.`
       );
 
-
       setSelectedFile(null);
 
-
-      // Refresh My Knowledge immediately.
       await loadKnowledge();
-
-
     } catch (error) {
-
       console.error(
         "Upload Knowledge Error:",
         error
@@ -363,33 +292,24 @@ function EmployeeDashboard() {
         error.message ||
         "Unable to upload knowledge."
       );
-
     } finally {
-
       setUploadingKnowledge(false);
-
     }
-
   };
-
 
   // ============================================================
   // PAGE NAVIGATION
   // ============================================================
 
   const openPage = (page) => {
-
     setActivePage(page);
-
   };
-
 
   // ============================================================
   // ASK AI ASSISTANT
   // ============================================================
 
   const askAssistant = async () => {
-
     if (!question.trim()) {
       return;
     }
@@ -398,6 +318,21 @@ function EmployeeDashboard() {
     setAnswer("");
 
     try {
+      // ========================================================
+      // JWT AUTHENTICATION
+      // ========================================================
+      // The role is NOT selected or sent manually.
+      // The backend reads the authenticated user's role from
+      // the JWT and uses it for role-aware RAG.
+      // ========================================================
+
+      const token = localStorage.getItem("auth_token");
+
+      if (!token) {
+        throw new Error(
+          "Your session has expired. Please log in again."
+        );
+      }
 
       const response = await fetch(
         "http://127.0.0.1:8000/ask",
@@ -406,6 +341,7 @@ function EmployeeDashboard() {
 
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
 
           body: JSON.stringify({
@@ -414,90 +350,93 @@ function EmployeeDashboard() {
         }
       );
 
+      const data = await response.json().catch(
+        () => ({})
+      );
 
-      if (!response.ok) {
-        throw new Error("API request failed");
+      if (response.status === 401) {
+        localStorage.removeItem("auth_token");
+
+        throw new Error(
+          "Your session has expired. Please log in again."
+        );
       }
 
-
-      const data = await response.json();
-
+      if (!response.ok) {
+        throw new Error(
+          data.detail ||
+          data.message ||
+          "AI Assistant request failed."
+        );
+      }
 
       setAnswer(
         data.answer ||
         "No answer received."
       );
 
-
     } catch (error) {
-
       console.error(
         "AI Assistant Error:",
         error
       );
 
-
       setAnswer(
+        error.message ||
         "Unable to connect to the AI Assistant."
       );
 
-
     } finally {
-
       setLoading(false);
-
     }
   };
-
 
   // ============================================================
   // OPEN ASSISTANT
   // ============================================================
 
   const openAssistant = () => {
-
     setShowAssistant(true);
-
   };
-
 
   // ============================================================
   // CLOSE ASSISTANT
   // ============================================================
 
   const closeAssistant = () => {
-
     setShowAssistant(false);
-
   };
-
 
   // ============================================================
   // MAIN UI
   // ============================================================
 
   return (
-
     <div className="employee-dashboard">
 
       <style>{`
         .employee-dashboard {
           font-size: 16px;
         }
+
         .employee-dashboard h1 {
           font-size: 34px !important;
           line-height: 1.2;
         }
+
         .employee-dashboard h3 {
           font-size: 21px !important;
         }
+
         .employee-dashboard h4 {
           font-size: 16px !important;
         }
+
         .employee-dashboard p {
           font-size: 14px !important;
           line-height: 1.55;
         }
+
         .employee-dashboard .employee-nav-item,
         .employee-dashboard .employee-nav-section,
         .employee-dashboard .employee-profile,
@@ -506,6 +445,7 @@ function EmployeeDashboard() {
         .employee-dashboard label {
           font-size: 14px !important;
         }
+
         .employee-dashboard .stat-card-top span,
         .employee-dashboard .stat-change,
         .employee-dashboard .stat-description,
@@ -514,11 +454,29 @@ function EmployeeDashboard() {
         .employee-dashboard .view-all-button {
           font-size: 13px !important;
         }
+
         .employee-dashboard .stat-number {
           font-size: 34px !important;
         }
-      `}</style>
 
+        .employee-logout-button {
+          margin-left: 14px;
+          padding: 8px 13px;
+          border: 1px solid #e6eaf0;
+          border-radius: 8px;
+          background: #ffffff;
+          color: #c24141;
+          font-size: 12px !important;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .employee-logout-button:hover {
+          background: #fff4f4;
+          border-color: #f1c4c4;
+        }
+      `}</style>
 
       {/* =====================================================
           SIDEBAR
@@ -526,20 +484,15 @@ function EmployeeDashboard() {
 
       <aside className="employee-sidebar">
 
-
         {/* BRAND */}
 
         <div className="employee-brand">
 
           <div className="employee-brand-icon">
-
             <BookOpen size={22} />
-
           </div>
 
-
           <div>
-
             <h2>
               RABC System
             </h2>
@@ -547,16 +500,13 @@ function EmployeeDashboard() {
             <span>
               AI Knowledge Risk Prevention
             </span>
-
           </div>
 
         </div>
 
-
         {/* NAVIGATION */}
 
         <nav className="employee-navigation">
-
 
           <button
             className={
@@ -566,15 +516,12 @@ function EmployeeDashboard() {
             }
             onClick={() => openPage("dashboard")}
           >
-
             <Home size={18} />
 
             <span>
               Dashboard
             </span>
-
           </button>
-
 
           <button
             className={
@@ -585,15 +532,12 @@ function EmployeeDashboard() {
             }
             onClick={() => openPage("knowledge")}
           >
-
             <BookOpen size={18} />
 
             <span>
               My Knowledge
             </span>
-
           </button>
-
 
           <button
             className={
@@ -603,15 +547,12 @@ function EmployeeDashboard() {
             }
             onClick={() => openPage("upload")}
           >
-
             <Upload size={18} />
 
             <span>
               Upload Knowledge
             </span>
-
           </button>
-
 
           <button
             className={
@@ -621,31 +562,23 @@ function EmployeeDashboard() {
             }
             onClick={() => openPage("tasks")}
           >
-
             <CheckSquare size={18} />
 
             <span>
               My Tasks
             </span>
-
           </button>
-
-
-          {/* AI ASSISTANT NAV */}
 
           <button
             className="employee-nav-item"
             onClick={openAssistant}
           >
-
             <Bot size={18} />
 
             <span>
               AI Assistant
             </span>
-
           </button>
-
 
           <button
             className={
@@ -655,24 +588,18 @@ function EmployeeDashboard() {
             }
             onClick={() => openPage("reports")}
           >
-
             <BarChart3 size={18} />
 
             <span>
               Reports
             </span>
-
           </button>
 
-
           <div className="employee-nav-section">
-
             <span>
               OTHER
             </span>
-
           </div>
-
 
           <button
             className={
@@ -682,15 +609,12 @@ function EmployeeDashboard() {
             }
             onClick={() => openPage("settings")}
           >
-
             <Settings size={18} />
 
             <span>
               Settings
             </span>
-
           </button>
-
 
           <button
             className={
@@ -700,34 +624,24 @@ function EmployeeDashboard() {
             }
             onClick={() => openPage("help")}
           >
-
             <HelpCircle size={18} />
 
             <span>
               Help & Support
             </span>
-
           </button>
-
 
         </nav>
 
-
-        {/* =====================================================
-            SIDEBAR AI CARD
-        ===================================================== */}
+        {/* SIDEBAR AI CARD */}
 
         <div className="sidebar-ai-card">
-
 
           <div className="sidebar-ai-header">
 
             <div className="sidebar-ai-icon">
-
               <Sparkles size={16} />
-
             </div>
-
 
             <span>
               AI Assistant
@@ -735,29 +649,22 @@ function EmployeeDashboard() {
 
           </div>
 
-
           <p>
             Ask anything about your knowledge and projects.
           </p>
-
 
           <button
             className="sidebar-ai-button"
             onClick={openAssistant}
           >
-
             Ask a question
 
             <ArrowUpRight size={14} />
-
           </button>
-
 
         </div>
 
-
       </aside>
-
 
       {/* =====================================================
           MAIN CONTENT
@@ -765,13 +672,9 @@ function EmployeeDashboard() {
 
       <main className="employee-main">
 
-
-        {/* =====================================================
-            TOP BAR
-        ===================================================== */}
+        {/* TOP BAR */}
 
         <header className="employee-topbar">
-
 
           <div className="employee-search">
 
@@ -784,30 +687,23 @@ function EmployeeDashboard() {
 
           </div>
 
-
           <div className="employee-top-actions">
-
 
             <button
               className="notification-button"
             >
-
               <Bell size={19} />
 
               <span
                 className="notification-dot"
               />
-
             </button>
 
-
             <div className="employee-profile">
-
 
               <div className="profile-avatar">
                 RS
               </div>
-
 
               <div className="profile-details">
 
@@ -821,406 +717,445 @@ function EmployeeDashboard() {
 
               </div>
 
-
               <span className="profile-arrow">
                 ▼
               </span>
 
+              {/* LOGOUT */}
+
+              <button
+                type="button"
+                className="employee-logout-button"
+                onClick={logout}
+              >
+                Logout
+              </button>
 
             </div>
 
-
           </div>
-
 
         </header>
 
-
         {activePage === "dashboard" && (
-
           <>
+            {/* PAGE HEADING */}
 
-        {/* =====================================================
-            PAGE HEADING
-        ===================================================== */}
-
-        <section className="employee-welcome">
-
-
-          <div>
-
-            <h1>
-              {greeting}, Rohit 👋
-            </h1>
-
-
-            <p>
-              Here's what's happening with your knowledge today.
-            </p>
-
-          </div>
-
-
-          <label
-            className="quick-upload-button"
-            style={{ cursor: "pointer" }}
-          >
-
-            <Plus size={17} />
-
-            Upload Knowledge
-
-            <input
-              type="file"
-              accept=".txt,text/plain"
-              style={{ display: "none" }}
-              onChange={(event) => {
-
-                const file =
-                  event.target.files?.[0];
-
-                if (file) {
-
-                  setSelectedFile(file);
-                  setUploadMessage("");
-                  setUploadError("");
-                  openPage("upload");
-
-                }
-
-              }}
-            />
-
-          </label>
-
-
-        </section>
-
-
-        {/* =====================================================
-            STATISTICS
-        ===================================================== */}
-
-        <section className="employee-stats">
-
-          <div className="employee-stat-card">
-            <div className="stat-card-top">
-              <span>My Knowledge</span>
-              <div className="stat-icon blue"><BookOpen size={20} /></div>
-            </div>
-            <div className="stat-number">{knowledge.length}</div>
-            <div className="stat-description">
-              Privacy-processed knowledge cards
-            </div>
-          </div>
-
-          <div className="employee-stat-card">
-            <div className="stat-card-top">
-              <span>Tasks Assigned</span>
-              <div className="stat-icon green"><ClipboardList size={20} /></div>
-            </div>
-            <div className="stat-number">{tasks.length}</div>
-            <div className="stat-description">
-              Tasks assigned to you
-            </div>
-          </div>
-
-          <div className="employee-stat-card">
-            <div className="stat-card-top">
-              <span>Pending Tasks</span>
-              <div className="stat-icon orange"><Clock3 size={20} /></div>
-            </div>
-            <div className="stat-number">
-              {tasks.filter(
-                (task) => (task.status || "").toLowerCase() === "pending"
-              ).length}
-            </div>
-            <div className="stat-description">
-              Tasks waiting to be completed
-            </div>
-          </div>
-
-          <div className="employee-stat-card">
-            <div className="stat-card-top">
-              <span>Completed Tasks</span>
-              <div className="stat-icon purple"><CheckSquare size={20} /></div>
-            </div>
-            <div className="stat-number">
-              {tasks.filter(
-                (task) => (task.status || "").toLowerCase() === "completed"
-              ).length}
-            </div>
-            <div className="stat-description">
-              Tasks completed by you
-            </div>
-          </div>
-
-        </section>
-
-
-        {/* =====================================================
-            ACTIVITY + KNOWLEDGE FLOW
-        ===================================================== */}
-
-        <section className="employee-middle-grid">
-
-
-          {/* RECENT ACTIVITY */}
-
-          <div className="dashboard-card activity-card">
-
-            <div className="dashboard-card-header">
-              <div>
-                <h3>Recent Activity</h3>
-                <p>Your latest knowledge and task activity</p>
-              </div>
-
-              <button
-                className="view-all-button"
-                onClick={() => openPage("knowledge")}
-              >
-                View Knowledge
-              </button>
-            </div>
-
-            <div className="activity-list">
-
-              {[
-                ...knowledge.slice(0, 3).map((item) => ({
-                  key: `knowledge-${item.id}`,
-                  title: item.title || "Knowledge added",
-                  description: "Knowledge stored after privacy processing",
-                  time: item.timestamp
-                    ? new Date(item.timestamp).toLocaleDateString()
-                    : "Recent",
-                  icon: "knowledge",
-                })),
-                ...tasks.slice(0, 3).map((task) => ({
-                  key: `task-${task.id}`,
-                  title: task.title,
-                  description: `Task status: ${task.status || "Pending"}`,
-                  time: task.due_date
-                    ? `Due ${new Date(task.due_date).toLocaleDateString()}`
-                    : "No due date",
-                  icon: "task",
-                })),
-              ].slice(0, 5).map((item) => (
-
-                <div className="activity-item" key={item.key}>
-
-                  <div
-                    className={
-                      item.icon === "task"
-                        ? "activity-icon purple"
-                        : "activity-icon blue"
-                    }
-                  >
-                    {item.icon === "task"
-                      ? <CheckSquare size={18} />
-                      : <BookOpen size={18} />}
-                  </div>
-
-                  <div className="activity-content">
-                    <strong>{item.title}</strong>
-                    <span>{item.description}</span>
-                  </div>
-
-                  <span className="activity-time">
-                    {item.time}
-                  </span>
-
-                </div>
-
-              ))}
-
-              {knowledge.length === 0 && tasks.length === 0 && (
-                <div
-                  style={{
-                    padding: "28px 10px",
-                    textAlign: "center",
-                    color: "#697586",
-                  }}
-                >
-                  No recent activity yet.
-                </div>
-              )}
-
-            </div>
-
-          </div>
-
-
-          {/* =====================================================
-              KNOWLEDGE FLOW
-          ===================================================== */}
-
-          <div className="dashboard-card knowledge-flow-card">
-
-
-            <div className="dashboard-card-header">
-
+            <section className="employee-welcome">
 
               <div>
 
-                <h3>
-                  My Work Flow
-                </h3>
+                <h1>
+                  {greeting}, Rohit 👋
+                </h1>
 
                 <p>
-                  Knowledge contributions and assigned work
+                  Here's what's happening with your knowledge today.
                 </p>
 
               </div>
 
+              <label
+                className="quick-upload-button"
+                style={{ cursor: "pointer" }}
+              >
+                <Plus size={17} />
 
-              <select className="week-select">
+                Upload Knowledge
 
-                <option>
-                  This Week
-                </option>
+                <input
+                  type="file"
+                  accept=".txt,text/plain"
+                  style={{ display: "none" }}
+                  onChange={(event) => {
 
-                <option>
-                  Last Week
-                </option>
+                    const file =
+                      event.target.files?.[0];
 
-                <option>
-                  This Month
-                </option>
+                    if (file) {
+                      setSelectedFile(file);
+                      setUploadMessage("");
+                      setUploadError("");
+                      openPage("upload");
+                    }
 
-              </select>
+                  }}
+                />
 
+              </label>
 
-            </div>
+            </section>
 
+            {/* STATISTICS */}
 
-            <div className="knowledge-chart">
+            <section className="employee-stats">
 
+              <div className="employee-stat-card">
 
-              <div className="chart-y-axis">
+                <div className="stat-card-top">
 
-                <span>80</span>
-                <span>60</span>
-                <span>40</span>
-                <span>20</span>
-                <span>0</span>
+                  <span>
+                    My Knowledge
+                  </span>
 
-              </div>
-
-
-              <div className="chart-area">
-
-
-                <div className="chart-grid-line line-1" />
-                <div className="chart-grid-line line-2" />
-                <div className="chart-grid-line line-3" />
-                <div className="chart-grid-line line-4" />
-
-
-                <svg
-                  className="knowledge-line"
-                  viewBox="0 0 500 180"
-                  preserveAspectRatio="none"
-                >
-
-
-                  <defs>
-
-                    <linearGradient
-                      id="knowledgeGradient"
-                      x1="0"
-                      x2="0"
-                      y1="0"
-                      y2="1"
-                    >
-
-                      <stop
-                        offset="0%"
-                        stopColor="#2563eb"
-                        stopOpacity="0.25"
-                      />
-
-                      <stop
-                        offset="100%"
-                        stopColor="#2563eb"
-                        stopOpacity="0"
-                      />
-
-                    </linearGradient>
-
-                  </defs>
-
-
-                  <path
-                    d="
-                      M0 130
-                      C35 85, 60 110, 95 100
-                      C130 90, 140 120, 175 105
-                      C210 90, 225 125, 260 85
-                      C300 45, 315 65, 350 35
-                      C380 10, 405 70, 430 82
-                      C455 95, 475 70, 500 55
-                      L500 180
-                      L0 180
-                      Z
-                    "
-                    fill="url(#knowledgeGradient)"
-                  />
-
-
-                  <path
-                    d="
-                      M0 130
-                      C35 85, 60 110, 95 100
-                      C130 90, 140 120, 175 105
-                      C210 90, 225 125, 260 85
-                      C300 45, 315 65, 350 35
-                      C380 10, 405 70, 430 82
-                      C455 95, 475 70, 500 55
-                    "
-                    fill="none"
-                    stroke="#2563eb"
-                    strokeWidth="3"
-                  />
-
-
-                </svg>
-
-
-                <div className="chart-days">
-
-                  <span>Mon</span>
-                  <span>Tue</span>
-                  <span>Wed</span>
-                  <span>Thu</span>
-                  <span>Fri</span>
-                  <span>Sat</span>
-                  <span>Sun</span>
+                  <div className="stat-icon blue">
+                    <BookOpen size={20} />
+                  </div>
 
                 </div>
 
+                <div className="stat-number">
+                  {knowledge.length}
+                </div>
+
+                <div className="stat-description">
+                  Privacy-processed knowledge cards
+                </div>
 
               </div>
 
+              <div className="employee-stat-card">
 
-            </div>
+                <div className="stat-card-top">
 
+                  <span>
+                    Tasks Assigned
+                  </span>
 
-          </div>
+                  <div className="stat-icon green">
+                    <ClipboardList size={20} />
+                  </div>
 
+                </div>
 
-        </section>
+                <div className="stat-number">
+                  {tasks.length}
+                </div>
 
+                <div className="stat-description">
+                  Tasks assigned to you
+                </div>
 
+              </div>
 
+              <div className="employee-stat-card">
 
+                <div className="stat-card-top">
+
+                  <span>
+                    Pending Tasks
+                  </span>
+
+                  <div className="stat-icon orange">
+                    <Clock3 size={20} />
+                  </div>
+
+                </div>
+
+                <div className="stat-number">
+                  {tasks.filter(
+                    (task) =>
+                      (task.status || "").toLowerCase() ===
+                      "pending"
+                  ).length}
+                </div>
+
+                <div className="stat-description">
+                  Tasks waiting to be completed
+                </div>
+
+              </div>
+
+              <div className="employee-stat-card">
+
+                <div className="stat-card-top">
+
+                  <span>
+                    Completed Tasks
+                  </span>
+
+                  <div className="stat-icon purple">
+                    <CheckSquare size={20} />
+                  </div>
+
+                </div>
+
+                <div className="stat-number">
+                  {tasks.filter(
+                    (task) =>
+                      (task.status || "").toLowerCase() ===
+                      "completed"
+                  ).length}
+                </div>
+
+                <div className="stat-description">
+                  Tasks completed by you
+                </div>
+
+              </div>
+
+            </section>
+
+            {/* ACTIVITY + KNOWLEDGE FLOW */}
+
+            <section className="employee-middle-grid">
+
+              <div className="dashboard-card activity-card">
+
+                <div className="dashboard-card-header">
+
+                  <div>
+
+                    <h3>
+                      Recent Activity
+                    </h3>
+
+                    <p>
+                      Your latest knowledge and task activity
+                    </p>
+
+                  </div>
+
+                  <button
+                    className="view-all-button"
+                    onClick={() => openPage("knowledge")}
+                  >
+                    View Knowledge
+                  </button>
+
+                </div>
+
+                <div className="activity-list">
+
+                  {[
+                    ...knowledge.slice(0, 3).map((item) => ({
+                      key: `knowledge-${item.id}`,
+                      title: item.title || "Knowledge added",
+                      description:
+                        "Knowledge stored after privacy processing",
+                      time: item.timestamp
+                        ? new Date(
+                            item.timestamp
+                          ).toLocaleDateString()
+                        : "Recent",
+                      icon: "knowledge",
+                    })),
+
+                    ...tasks.slice(0, 3).map((task) => ({
+                      key: `task-${task.id}`,
+                      title: task.title,
+                      description:
+                        `Task status: ${task.status || "Pending"}`,
+                      time: task.due_date
+                        ? `Due ${new Date(
+                            task.due_date
+                          ).toLocaleDateString()}`
+                        : "No due date",
+                      icon: "task",
+                    })),
+                  ]
+                    .slice(0, 5)
+                    .map((item) => (
+
+                      <div
+                        className="activity-item"
+                        key={item.key}
+                      >
+
+                        <div
+                          className={
+                            item.icon === "task"
+                              ? "activity-icon purple"
+                              : "activity-icon blue"
+                          }
+                        >
+                          {item.icon === "task"
+                            ? <CheckSquare size={18} />
+                            : <BookOpen size={18} />}
+                        </div>
+
+                        <div className="activity-content">
+
+                          <strong>
+                            {item.title}
+                          </strong>
+
+                          <span>
+                            {item.description}
+                          </span>
+
+                        </div>
+
+                        <span className="activity-time">
+                          {item.time}
+                        </span>
+
+                      </div>
+
+                    ))}
+
+                  {knowledge.length === 0 &&
+                    tasks.length === 0 && (
+
+                      <div
+                        style={{
+                          padding: "28px 10px",
+                          textAlign: "center",
+                          color: "#697586",
+                        }}
+                      >
+                        No recent activity yet.
+                      </div>
+
+                    )}
+
+                </div>
+
+              </div>
+
+              {/* KNOWLEDGE FLOW */}
+
+              <div className="dashboard-card knowledge-flow-card">
+
+                <div className="dashboard-card-header">
+
+                  <div>
+
+                    <h3>
+                      My Work Flow
+                    </h3>
+
+                    <p>
+                      Knowledge contributions and assigned work
+                    </p>
+
+                  </div>
+
+                  <select className="week-select">
+
+                    <option>
+                      This Week
+                    </option>
+
+                    <option>
+                      Last Week
+                    </option>
+
+                    <option>
+                      This Month
+                    </option>
+
+                  </select>
+
+                </div>
+
+                <div className="knowledge-chart">
+
+                  <div className="chart-y-axis">
+
+                    <span>80</span>
+                    <span>60</span>
+                    <span>40</span>
+                    <span>20</span>
+                    <span>0</span>
+
+                  </div>
+
+                  <div className="chart-area">
+
+                    <div className="chart-grid-line line-1" />
+                    <div className="chart-grid-line line-2" />
+                    <div className="chart-grid-line line-3" />
+                    <div className="chart-grid-line line-4" />
+
+                    <svg
+                      className="knowledge-line"
+                      viewBox="0 0 500 180"
+                      preserveAspectRatio="none"
+                    >
+
+                      <defs>
+
+                        <linearGradient
+                          id="knowledgeGradient"
+                          x1="0"
+                          x2="0"
+                          y1="0"
+                          y2="1"
+                        >
+
+                          <stop
+                            offset="0%"
+                            stopColor="#2563eb"
+                            stopOpacity="0.25"
+                          />
+
+                          <stop
+                            offset="100%"
+                            stopColor="#2563eb"
+                            stopOpacity="0"
+                          />
+
+                        </linearGradient>
+
+                      </defs>
+
+                      <path
+                        d="
+                          M0 130
+                          C35 85, 60 110, 95 100
+                          C130 90, 140 120, 175 105
+                          C210 90, 225 125, 260 85
+                          C300 45, 315 65, 350 35
+                          C380 10, 405 70, 430 82
+                          C455 95, 475 70, 500 55
+                          L500 180
+                          L0 180
+                          Z
+                        "
+                        fill="url(#knowledgeGradient)"
+                      />
+
+                      <path
+                        d="
+                          M0 130
+                          C35 85, 60 110, 95 100
+                          C130 90, 140 120, 175 105
+                          C210 90, 225 125, 260 85
+                          C300 45, 315 65, 350 35
+                          C380 10, 405 70, 430 82
+                          C455 95, 475 70, 500 55
+                        "
+                        fill="none"
+                        stroke="#2563eb"
+                        strokeWidth="3"
+                      />
+
+                    </svg>
+
+                    <div className="chart-days">
+
+                      <span>Mon</span>
+                      <span>Tue</span>
+                      <span>Wed</span>
+                      <span>Thu</span>
+                      <span>Fri</span>
+                      <span>Sat</span>
+                      <span>Sun</span>
+
+                    </div>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+            </section>
           </>
-
         )}
 
-
-        {/* =====================================================
-            REPORTS PAGE
-        ===================================================== */}
+        {/* REPORTS PAGE */}
 
         {activePage === "reports" && (
 
@@ -1252,7 +1187,6 @@ function EmployeeDashboard() {
 
             </div>
 
-
             <div
               style={{
                 display: "grid",
@@ -1263,119 +1197,155 @@ function EmployeeDashboard() {
               }}
             >
 
-              <div style={{
-                padding: "18px",
-                border: "1px solid #e6eaf0",
-                borderRadius: "12px",
-                background: "#ffffff",
-              }}>
+              <div
+                style={{
+                  padding: "18px",
+                  border: "1px solid #e6eaf0",
+                  borderRadius: "12px",
+                  background: "#ffffff",
+                }}
+              >
+
                 <BookOpen size={19} />
-                <div style={{
-                  marginTop: "12px",
-                  fontSize: "24px",
-                  fontWeight: 700,
-                  color: "#273142",
-                }}>
+
+                <div
+                  style={{
+                    marginTop: "12px",
+                    fontSize: "24px",
+                    fontWeight: 700,
+                    color: "#273142",
+                  }}
+                >
                   {knowledge.length}
                 </div>
-                <div style={{
-                  marginTop: "4px",
-                  fontSize: "11px",
-                  color: "#7b8699",
-                }}>
+
+                <div
+                  style={{
+                    marginTop: "4px",
+                    fontSize: "11px",
+                    color: "#7b8699",
+                  }}
+                >
                   Knowledge Contributions
                 </div>
+
               </div>
 
+              <div
+                style={{
+                  padding: "18px",
+                  border: "1px solid #e6eaf0",
+                  borderRadius: "12px",
+                  background: "#ffffff",
+                }}
+              >
 
-              <div style={{
-                padding: "18px",
-                border: "1px solid #e6eaf0",
-                borderRadius: "12px",
-                background: "#ffffff",
-              }}>
                 <CheckSquare size={19} />
-                <div style={{
-                  marginTop: "12px",
-                  fontSize: "24px",
-                  fontWeight: 700,
-                  color: "#273142",
-                }}>
+
+                <div
+                  style={{
+                    marginTop: "12px",
+                    fontSize: "24px",
+                    fontWeight: 700,
+                    color: "#273142",
+                  }}
+                >
                   {tasks.filter(
                     (task) =>
                       (task.status || "").toLowerCase() ===
                       "completed"
                   ).length}
                 </div>
-                <div style={{
-                  marginTop: "4px",
-                  fontSize: "11px",
-                  color: "#7b8699",
-                }}>
+
+                <div
+                  style={{
+                    marginTop: "4px",
+                    fontSize: "11px",
+                    color: "#7b8699",
+                  }}
+                >
                   Tasks Completed
                 </div>
+
               </div>
 
+              <div
+                style={{
+                  padding: "18px",
+                  border: "1px solid #e6eaf0",
+                  borderRadius: "12px",
+                  background: "#ffffff",
+                }}
+              >
 
-              <div style={{
-                padding: "18px",
-                border: "1px solid #e6eaf0",
-                borderRadius: "12px",
-                background: "#ffffff",
-              }}>
                 <Clock3 size={19} />
-                <div style={{
-                  marginTop: "12px",
-                  fontSize: "24px",
-                  fontWeight: 700,
-                  color: "#273142",
-                }}>
+
+                <div
+                  style={{
+                    marginTop: "12px",
+                    fontSize: "24px",
+                    fontWeight: 700,
+                    color: "#273142",
+                  }}
+                >
                   {tasks.filter(
                     (task) =>
                       (task.status || "").toLowerCase() ===
                       "pending"
                   ).length}
                 </div>
-                <div style={{
-                  marginTop: "4px",
-                  fontSize: "11px",
-                  color: "#7b8699",
-                }}>
+
+                <div
+                  style={{
+                    marginTop: "4px",
+                    fontSize: "11px",
+                    color: "#7b8699",
+                  }}
+                >
                   Tasks Pending
                 </div>
+
               </div>
 
+              <div
+                style={{
+                  padding: "18px",
+                  border: "1px solid #e6eaf0",
+                  borderRadius: "12px",
+                  background: "#ffffff",
+                }}
+              >
 
-              <div style={{
-                padding: "18px",
-                border: "1px solid #e6eaf0",
-                borderRadius: "12px",
-                background: "#ffffff",
-              }}>
                 <BarChart3 size={19} />
-                <div style={{
-                  marginTop: "12px",
-                  fontSize: "24px",
-                  fontWeight: 700,
-                  color: "#273142",
-                }}>
+
+                <div
+                  style={{
+                    marginTop: "12px",
+                    fontSize: "24px",
+                    fontWeight: 700,
+                    color: "#273142",
+                  }}
+                >
                   {tasks.filter(
                     (task) =>
                       (task.status || "").toLowerCase() ===
                       "in progress"
                   ).length}
                 </div>
-                <div style={{
-                  marginTop: "4px",
-                  fontSize: "11px",
-                  color: "#7b8699",
-                }}>
+
+                <div
+                  style={{
+                    marginTop: "4px",
+                    fontSize: "11px",
+                    color: "#7b8699",
+                  }}
+                >
                   In Progress
                 </div>
+
               </div>
 
             </div>
-
 
             <div
               style={{
@@ -1386,32 +1356,38 @@ function EmployeeDashboard() {
               }}
             >
 
-              <h4 style={{
-                margin: "0 0 14px",
-                color: "#273142",
-                fontSize: "15px",
-              }}>
+              <h4
+                style={{
+                  margin: "0 0 14px",
+                  color: "#273142",
+                  fontSize: "15px",
+                }}
+              >
                 Recent Work
               </h4>
 
+              {knowledge.length === 0 &&
+              tasks.length === 0 ? (
 
-              {knowledge.length === 0 && tasks.length === 0 ? (
-
-                <div style={{
-                  padding: "28px 10px",
-                  textAlign: "center",
-                  color: "#7b8699",
-                  fontSize: "12px",
-                }}>
+                <div
+                  style={{
+                    padding: "28px 10px",
+                    textAlign: "center",
+                    color: "#7b8699",
+                    fontSize: "12px",
+                  }}
+                >
                   No work activity available yet.
                 </div>
 
               ) : (
 
-                <div style={{
-                  display: "grid",
-                  gap: "10px",
-                }}>
+                <div
+                  style={{
+                    display: "grid",
+                    gap: "10px",
+                  }}
+                >
 
                   {tasks.slice(0, 4).map((task) => (
 
@@ -1428,32 +1404,39 @@ function EmployeeDashboard() {
                     >
 
                       <div>
-                        <div style={{
-                          fontSize: "12px",
-                          fontWeight: 600,
-                          color: "#344054",
-                        }}>
+
+                        <div
+                          style={{
+                            fontSize: "12px",
+                            fontWeight: 600,
+                            color: "#344054",
+                          }}
+                        >
                           {task.title}
                         </div>
 
-                        <div style={{
-                          marginTop: "3px",
-                          fontSize: "10px",
-                          color: "#7b8699",
-                        }}>
+                        <div
+                          style={{
+                            marginTop: "3px",
+                            fontSize: "10px",
+                            color: "#7b8699",
+                          }}
+                        >
                           Task • {task.status || "Pending"}
                         </div>
+
                       </div>
 
                       <CheckSquare
                         size={16}
-                        style={{ flexShrink: 0 }}
+                        style={{
+                          flexShrink: 0,
+                        }}
                       />
 
                     </div>
 
                   ))}
-
 
                   {knowledge.slice(0, 4).map((item) => (
 
@@ -1470,26 +1453,34 @@ function EmployeeDashboard() {
                     >
 
                       <div>
-                        <div style={{
-                          fontSize: "12px",
-                          fontWeight: 600,
-                          color: "#344054",
-                        }}>
+
+                        <div
+                          style={{
+                            fontSize: "12px",
+                            fontWeight: 600,
+                            color: "#344054",
+                          }}
+                        >
                           {item.title}
                         </div>
 
-                        <div style={{
-                          marginTop: "3px",
-                          fontSize: "10px",
-                          color: "#7b8699",
-                        }}>
+                        <div
+                          style={{
+                            marginTop: "3px",
+                            fontSize: "10px",
+                            color: "#7b8699",
+                          }}
+                        >
                           Knowledge Contribution
                         </div>
+
                       </div>
 
                       <BookOpen
                         size={16}
-                        style={{ flexShrink: 0 }}
+                        style={{
+                          flexShrink: 0,
+                        }}
                       />
 
                     </div>
@@ -1506,10 +1497,7 @@ function EmployeeDashboard() {
 
         )}
 
-
-        {/* =====================================================
-            MY TASKS PAGE
-        ===================================================== */}
+        {/* MY TASKS PAGE */}
 
         {activePage === "tasks" && (
 
@@ -1534,11 +1522,12 @@ function EmployeeDashboard() {
                 onClick={loadTasks}
                 disabled={tasksLoading}
               >
-                {tasksLoading ? "Refreshing..." : "Refresh"}
+                {tasksLoading
+                  ? "Refreshing..."
+                  : "Refresh"}
               </button>
 
             </div>
-
 
             {tasksError && (
 
@@ -1557,7 +1546,6 @@ function EmployeeDashboard() {
 
             )}
 
-
             {tasksLoading && (
 
               <div
@@ -1572,7 +1560,6 @@ function EmployeeDashboard() {
               </div>
 
             )}
-
 
             {!tasksLoading &&
               !tasksError &&
@@ -1602,7 +1589,6 @@ function EmployeeDashboard() {
                 </div>
 
               )}
-
 
             {!tasksLoading &&
               !tasksError &&
@@ -1678,7 +1664,6 @@ function EmployeeDashboard() {
                               <CheckSquare size={18} />
                             </div>
 
-
                             <div>
 
                               <h4
@@ -1708,7 +1693,6 @@ function EmployeeDashboard() {
 
                           </div>
 
-
                           <span
                             style={{
                               padding: "5px 9px",
@@ -1730,7 +1714,6 @@ function EmployeeDashboard() {
                           </span>
 
                         </div>
-
 
                         <div
                           style={{
@@ -1756,7 +1739,6 @@ function EmployeeDashboard() {
                           >
                             {statusLabel}
                           </span>
-
 
                           <span
                             style={{
@@ -1788,10 +1770,7 @@ function EmployeeDashboard() {
 
         )}
 
-
-        {/* =====================================================
-            SETTINGS PAGE
-        ===================================================== */}
+        {/* SETTINGS PAGE */}
 
         {activePage === "settings" && (
 
@@ -1800,12 +1779,18 @@ function EmployeeDashboard() {
             <div className="dashboard-card-header">
 
               <div>
-                <h3>Settings</h3>
-                <p>Manage your employee dashboard preferences.</p>
+
+                <h3>
+                  Settings
+                </h3>
+
+                <p>
+                  Manage your employee dashboard preferences.
+                </p>
+
               </div>
 
             </div>
-
 
             <div
               style={{
@@ -1823,24 +1808,27 @@ function EmployeeDashboard() {
                 }}
               >
 
-                <h4 style={{
-                  margin: "0 0 6px",
-                  color: "#273142",
-                  fontSize: "15px",
-                }}>
+                <h4
+                  style={{
+                    margin: "0 0 6px",
+                    color: "#273142",
+                    fontSize: "15px",
+                  }}
+                >
                   Profile
                 </h4>
 
-                <p style={{
-                  margin: 0,
-                  color: "#697586",
-                  fontSize: "12px",
-                }}>
+                <p
+                  style={{
+                    margin: 0,
+                    color: "#697586",
+                    fontSize: "12px",
+                  }}
+                >
                   Rohit • Engineering • Employee
                 </p>
 
               </div>
-
 
               <div
                 style={{
@@ -1851,14 +1839,15 @@ function EmployeeDashboard() {
                 }}
               >
 
-                <h4 style={{
-                  margin: "0 0 14px",
-                  color: "#273142",
-                  fontSize: "15px",
-                }}>
+                <h4
+                  style={{
+                    margin: "0 0 14px",
+                    color: "#273142",
+                    fontSize: "15px",
+                  }}
+                >
                   Preferences
                 </h4>
-
 
                 <label
                   style={{
@@ -1872,15 +1861,18 @@ function EmployeeDashboard() {
                   }}
                 >
                   Notifications
+
                   <input
                     type="checkbox"
                     checked={notificationsEnabled}
                     onChange={(e) =>
-                      setNotificationsEnabled(e.target.checked)
+                      setNotificationsEnabled(
+                        e.target.checked
+                      )
                     }
                   />
-                </label>
 
+                </label>
 
                 <label
                   style={{
@@ -1893,17 +1885,20 @@ function EmployeeDashboard() {
                   }}
                 >
                   AI Suggestions
+
                   <input
                     type="checkbox"
                     checked={aiSuggestionsEnabled}
                     onChange={(e) =>
-                      setAiSuggestionsEnabled(e.target.checked)
+                      setAiSuggestionsEnabled(
+                        e.target.checked
+                      )
                     }
                   />
+
                 </label>
 
               </div>
-
 
               <div
                 style={{
@@ -1924,10 +1919,7 @@ function EmployeeDashboard() {
 
         )}
 
-
-        {/* =====================================================
-            HELP & SUPPORT PAGE
-        ===================================================== */}
+        {/* HELP & SUPPORT PAGE */}
 
         {activePage === "help" && (
 
@@ -1936,38 +1928,50 @@ function EmployeeDashboard() {
             <div className="dashboard-card-header">
 
               <div>
-                <h3>Help & Support</h3>
-                <p>Quick answers for using your employee workspace.</p>
+
+                <h3>
+                  Help & Support
+                </h3>
+
+                <p>
+                  Quick answers for using your employee workspace.
+                </p>
+
               </div>
 
             </div>
 
-
-            <div style={{
-              display: "grid",
-              gap: "12px",
-            }}>
+            <div
+              style={{
+                display: "grid",
+                gap: "12px",
+              }}
+            >
 
               {[
                 {
-                  question: "How does My Knowledge work?",
+                  question:
+                    "How does My Knowledge work?",
                   answer:
-                    "Your stored knowledge is retrieved from the knowledge system and shown in your employee workspace."
+                    "Your stored knowledge is retrieved from the knowledge system and shown in your employee workspace.",
                 },
                 {
-                  question: "Is uploaded private information sent directly to RAG?",
+                  question:
+                    "Is uploaded private information sent directly to RAG?",
                   answer:
-                    "No. Uploaded knowledge passes through the privacy pipeline before it is stored for retrieval."
+                    "No. Uploaded knowledge passes through the privacy pipeline before it is stored for retrieval.",
                 },
                 {
-                  question: "Where can I see assigned work?",
+                  question:
+                    "Where can I see assigned work?",
                   answer:
-                    "Open My Tasks from the sidebar to see your assigned tasks, priorities and due dates."
+                    "Open My Tasks from the sidebar to see your assigned tasks, priorities and due dates.",
                 },
                 {
-                  question: "How do I ask the AI Assistant?",
+                  question:
+                    "How do I ask the AI Assistant?",
                   answer:
-                    "Open AI Assistant and ask a question about your available project knowledge."
+                    "Open AI Assistant and ask a question about your available project knowledge.",
                 },
               ].map((item) => (
 
@@ -1981,27 +1985,30 @@ function EmployeeDashboard() {
                   }}
                 >
 
-                  <h4 style={{
-                    margin: "0 0 7px",
-                    color: "#273142",
-                    fontSize: "13px",
-                  }}>
+                  <h4
+                    style={{
+                      margin: "0 0 7px",
+                      color: "#273142",
+                      fontSize: "13px",
+                    }}
+                  >
                     {item.question}
                   </h4>
 
-                  <p style={{
-                    margin: 0,
-                    color: "#697586",
-                    fontSize: "11px",
-                    lineHeight: 1.55,
-                  }}>
+                  <p
+                    style={{
+                      margin: 0,
+                      color: "#697586",
+                      fontSize: "11px",
+                      lineHeight: 1.55,
+                    }}
+                  >
                     {item.answer}
                   </p>
 
                 </div>
 
               ))}
-
 
               <div
                 style={{
@@ -2012,8 +2019,12 @@ function EmployeeDashboard() {
                   fontSize: "12px",
                 }}
               >
-                <strong>Need more help?</strong>
+                <strong>
+                  Need more help?
+                </strong>
+
                 <br />
+
                 Contact your manager or system administrator for
                 account, access or project-specific issues.
               </div>
@@ -2024,10 +2035,7 @@ function EmployeeDashboard() {
 
         )}
 
-
-        {/* =====================================================
-            UPLOAD KNOWLEDGE PAGE
-        ===================================================== */}
+        {/* UPLOAD KNOWLEDGE PAGE */}
 
         {activePage === "upload" && (
 
@@ -2049,13 +2057,14 @@ function EmployeeDashboard() {
 
               <button
                 className="view-all-button"
-                onClick={() => openPage("knowledge")}
+                onClick={() =>
+                  openPage("knowledge")
+                }
               >
                 My Knowledge
               </button>
 
             </div>
-
 
             <div
               style={{
@@ -2091,7 +2100,6 @@ function EmployeeDashboard() {
                   <Upload size={23} />
                 </div>
 
-
                 <h4
                   style={{
                     margin: "4px 0 0",
@@ -2102,7 +2110,6 @@ function EmployeeDashboard() {
                   Upload a knowledge file
                 </h4>
 
-
                 <p
                   style={{
                     margin: 0,
@@ -2112,7 +2119,6 @@ function EmployeeDashboard() {
                 >
                   Currently supported: UTF-8 .txt files
                 </p>
-
 
                 <label
                   style={{
@@ -2132,25 +2138,24 @@ function EmployeeDashboard() {
                   <input
                     type="file"
                     accept=".txt,text/plain"
-                    style={{ display: "none" }}
+                    style={{
+                      display: "none",
+                    }}
                     onChange={(event) => {
 
                       const file =
                         event.target.files?.[0];
 
                       if (file) {
-
                         setSelectedFile(file);
                         setUploadMessage("");
                         setUploadError("");
-
                       }
 
                     }}
                   />
 
                 </label>
-
 
                 {selectedFile && (
 
@@ -2172,7 +2177,6 @@ function EmployeeDashboard() {
                   </div>
 
                 )}
-
 
                 <button
                   type="button"
@@ -2207,7 +2211,6 @@ function EmployeeDashboard() {
                     : "Upload Knowledge"}
                 </button>
 
-
                 {uploadMessage && (
 
                   <div
@@ -2224,7 +2227,6 @@ function EmployeeDashboard() {
                   </div>
 
                 )}
-
 
                 {uploadError && (
 
@@ -2251,10 +2253,7 @@ function EmployeeDashboard() {
 
         )}
 
-
-        {/* =====================================================
-            MY KNOWLEDGE PAGE
-        ===================================================== */}
+        {/* MY KNOWLEDGE PAGE */}
 
         {activePage === "knowledge" && (
 
@@ -2279,11 +2278,12 @@ function EmployeeDashboard() {
                 onClick={loadKnowledge}
                 disabled={knowledgeLoading}
               >
-                {knowledgeLoading ? "Refreshing..." : "Refresh"}
+                {knowledgeLoading
+                  ? "Refreshing..."
+                  : "Refresh"}
               </button>
 
             </div>
-
 
             <div
               style={{
@@ -2308,7 +2308,8 @@ function EmployeeDashboard() {
                     position: "absolute",
                     left: "12px",
                     top: "50%",
-                    transform: "translateY(-50%)",
+                    transform:
+                      "translateY(-50%)",
                     color: "#8a94a6",
                   }}
                 />
@@ -2317,14 +2318,18 @@ function EmployeeDashboard() {
                   type="text"
                   value={knowledgeSearch}
                   onChange={(event) =>
-                    setKnowledgeSearch(event.target.value)
+                    setKnowledgeSearch(
+                      event.target.value
+                    )
                   }
                   placeholder="Search your knowledge..."
                   style={{
                     width: "100%",
                     height: "42px",
-                    padding: "0 12px 0 38px",
-                    border: "1px solid #dfe4eb",
+                    padding:
+                      "0 12px 0 38px",
+                    border:
+                      "1px solid #dfe4eb",
                     borderRadius: "9px",
                     outline: "none",
                     fontSize: "13px",
@@ -2334,17 +2339,19 @@ function EmployeeDashboard() {
 
               </div>
 
-
               <select
                 value={knowledgeCategory}
                 onChange={(event) =>
-                  setKnowledgeCategory(event.target.value)
+                  setKnowledgeCategory(
+                    event.target.value
+                  )
                 }
                 style={{
                   height: "42px",
                   minWidth: "150px",
                   padding: "0 12px",
-                  border: "1px solid #dfe4eb",
+                  border:
+                    "1px solid #dfe4eb",
                   borderRadius: "9px",
                   background: "#ffffff",
                   color: "#344054",
@@ -2368,7 +2375,6 @@ function EmployeeDashboard() {
 
             </div>
 
-
             {knowledgeError && (
 
               <div
@@ -2386,7 +2392,6 @@ function EmployeeDashboard() {
 
             )}
 
-
             {knowledgeLoading && (
 
               <div
@@ -2401,7 +2406,6 @@ function EmployeeDashboard() {
               </div>
 
             )}
-
 
             {!knowledgeLoading &&
               !knowledgeError &&
@@ -2432,7 +2436,6 @@ function EmployeeDashboard() {
 
               )}
 
-
             {!knowledgeLoading &&
               filteredKnowledge.length > 0 && (
 
@@ -2451,7 +2454,8 @@ function EmployeeDashboard() {
                       key={item.id}
                       style={{
                         padding: "18px",
-                        border: "1px solid #e6eaf0",
+                        border:
+                          "1px solid #e6eaf0",
                         borderRadius: "12px",
                         background: "#ffffff",
                         minHeight: "175px",
@@ -2462,8 +2466,10 @@ function EmployeeDashboard() {
                       <div
                         style={{
                           display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "flex-start",
+                          justifyContent:
+                            "space-between",
+                          alignItems:
+                            "flex-start",
                           gap: "10px",
                           marginBottom: "12px",
                         }}
@@ -2474,11 +2480,15 @@ function EmployeeDashboard() {
                             width: "38px",
                             height: "38px",
                             display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
+                            alignItems:
+                              "center",
+                            justifyContent:
+                              "center",
                             borderRadius: "9px",
-                            background: "#eef4ff",
-                            color: "#2563eb",
+                            background:
+                              "#eef4ff",
+                            color:
+                              "#2563eb",
                             flexShrink: 0,
                           }}
                         >
@@ -2487,16 +2497,20 @@ function EmployeeDashboard() {
 
                         </div>
 
-
                         {item.category && (
 
                           <span
                             style={{
-                              padding: "5px 9px",
-                              borderRadius: "999px",
-                              background: "#f3f5f8",
-                              color: "#667085",
-                              fontSize: "10px",
+                              padding:
+                                "5px 9px",
+                              borderRadius:
+                                "999px",
+                              background:
+                                "#f3f5f8",
+                              color:
+                                "#667085",
+                              fontSize:
+                                "10px",
                               fontWeight: 600,
                             }}
                           >
@@ -2507,46 +2521,57 @@ function EmployeeDashboard() {
 
                       </div>
 
-
                       <h4
                         style={{
-                          margin: "0 0 8px",
-                          color: "#273142",
-                          fontSize: "15px",
+                          margin:
+                            "0 0 8px",
+                          color:
+                            "#273142",
+                          fontSize:
+                            "15px",
                           lineHeight: 1.4,
                         }}
                       >
                         {item.title}
                       </h4>
 
-
                       <p
                         style={{
-                          margin: "0 0 15px",
-                          color: "#697586",
-                          fontSize: "12px",
-                          lineHeight: 1.55,
+                          margin:
+                            "0 0 15px",
+                          color:
+                            "#697586",
+                          fontSize:
+                            "12px",
+                          lineHeight:
+                            1.55,
                         }}
                       >
                         {item.summary}
                       </p>
 
-
                       <div
                         style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
+                          display:
+                            "flex",
+                          justifyContent:
+                            "space-between",
+                          alignItems:
+                            "center",
                           gap: "10px",
-                          paddingTop: "12px",
-                          borderTop: "1px solid #eef1f5",
+                          paddingTop:
+                            "12px",
+                          borderTop:
+                            "1px solid #eef1f5",
                         }}
                       >
 
                         <span
                           style={{
-                            color: "#7b8699",
-                            fontSize: "10px",
+                            color:
+                              "#7b8699",
+                            fontSize:
+                              "10px",
                           }}
                         >
                           {item.timestamp
@@ -2556,18 +2581,21 @@ function EmployeeDashboard() {
                             : "No date"}
                         </span>
 
-
                         <span
                           style={{
-                            color: "#2563eb",
-                            fontSize: "10px",
+                            color:
+                              "#2563eb",
+                            fontSize:
+                              "10px",
                             fontWeight: 600,
                           }}
                         >
                           Confidence:{" "}
-                          {typeof item.confidence === "number"
+                          {typeof item.confidence ===
+                          "number"
                             ? `${Math.round(
-                                item.confidence * 100
+                                item.confidence *
+                                  100
                               )}%`
                             : "N/A"}
                         </span>
@@ -2586,33 +2614,21 @@ function EmployeeDashboard() {
 
         )}
 
-
-        {/* =====================================================
-            AI ASSISTANT PANEL
-        ===================================================== */}
+        {/* AI ASSISTANT PANEL */}
 
         {showAssistant && (
 
           <div className="ai-assistant-overlay">
 
-
             <div className="ai-assistant-panel">
-
-
-              {/* HEADER */}
 
               <div className="ai-assistant-header">
 
-
                 <div className="ai-assistant-title">
 
-
                   <div className="ai-assistant-avatar">
-
                     <Bot size={20} />
-
                   </div>
-
 
                   <div>
 
@@ -2626,135 +2642,101 @@ function EmployeeDashboard() {
 
                   </div>
 
-
                 </div>
-
 
                 <button
                   className="ai-close-button"
                   onClick={closeAssistant}
                 >
-
                   <X size={19} />
-
                 </button>
-
 
               </div>
 
-
-              {/* CHAT BODY */}
-
               <div className="ai-assistant-body">
 
+                {!question &&
+                  !answer &&
+                  !loading && (
 
-                {!question && !answer && !loading && (
+                    <div className="ai-welcome-message">
 
-                  <div className="ai-welcome-message">
+                      <div className="ai-welcome-icon">
+                        <Sparkles size={24} />
+                      </div>
 
+                      <h3>
+                        How can I help you?
+                      </h3>
 
-                    <div className="ai-welcome-icon">
-
-                      <Sparkles size={24} />
+                      <p>
+                        Ask me about your projects,
+                        knowledge, decisions, or work updates.
+                      </p>
 
                     </div>
 
-
-                    <h3>
-                      How can I help you?
-                    </h3>
-
-
-                    <p>
-                      Ask me about your projects, knowledge,
-                      decisions, or work updates.
-                    </p>
-
-
-                  </div>
-
-                )}
-
-
-                {/* USER QUESTION */}
+                  )}
 
                 {question && (
 
                   <div className="chat-message user-message">
 
-
                     <span className="message-label">
                       You
                     </span>
-
 
                     <div className="message-bubble">
                       {question}
                     </div>
 
-
                   </div>
 
                 )}
-
-
-                {/* LOADING */}
 
                 {loading && (
 
                   <div className="chat-message assistant-message">
 
-
                     <span className="message-label">
                       AI Assistant
                     </span>
-
 
                     <div className="message-bubble">
                       Searching your knowledge...
                     </div>
 
-
                   </div>
 
                 )}
-
-
-                {/* ANSWER */}
 
                 {answer && !loading && (
 
                   <div className="chat-message assistant-message">
 
-
                     <span className="message-label">
                       AI Assistant
                     </span>
-
 
                     <div className="message-bubble">
                       {answer}
                     </div>
 
-
                   </div>
 
                 )}
 
-
               </div>
 
-
-              {/* INPUT */}
-
               <div className="ai-assistant-input-area">
-
 
                 <input
                   type="text"
                   value={question}
                   onChange={(event) =>
-                    setQuestion(event.target.value)
+                    setQuestion(
+                      event.target.value
+                    )
                   }
                   onKeyDown={(event) => {
 
@@ -2762,16 +2744,13 @@ function EmployeeDashboard() {
                       event.key === "Enter" &&
                       !loading
                     ) {
-
                       askAssistant();
-
                     }
 
                   }}
                   placeholder="Ask about your knowledge..."
                   disabled={loading}
                 />
-
 
                 <button
                   onClick={askAssistant}
@@ -2780,45 +2759,30 @@ function EmployeeDashboard() {
                     !question.trim()
                   }
                 >
-
                   <Send size={17} />
-
                 </button>
-
 
               </div>
 
-
             </div>
-
 
           </div>
 
         )}
 
-
-        {/* =====================================================
-            FLOATING AI BUTTON
-        ===================================================== */}
+        {/* FLOATING AI BUTTON */}
 
         <button
           className="floating-ai-button"
           onClick={openAssistant}
         >
-
           <Bot size={23} />
-
         </button>
-
 
       </main>
 
-
     </div>
-
   );
-
 }
-
 
 export default EmployeeDashboard;
